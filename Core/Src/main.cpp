@@ -192,8 +192,8 @@ int main(void)
   {
     /* USER CODE END WHILE */
 	HAL_UART_Receive_IT(&huart1, rx_buff, 1);
-	if (rx_buff[0]!=NULL){
-		rx_buff[0]=NULL;
+	if (rx_buff[0]!=0){
+		rx_buff[0]=0;
 	}
 	if (Work) {
 		MainStateMachine.Tick();

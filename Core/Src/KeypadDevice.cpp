@@ -20,7 +20,7 @@ public:
 		this->LongHoldDelay = LongHoldDelay;
 	}
 	void UpdateKeymap(){
-		/*uint8_t row{0};
+		uint8_t row{0};
 		uint8_t column{0};
 		auto rowiter = Rows_GPIO_Pins.begin();
 		auto columniter = Columns_GPIO_Pins.begin();
@@ -39,7 +39,7 @@ public:
 			columniter = Columns_GPIO_Pins.begin();
 			column=0;
 			rowiter++;
-			row++;*/
+			row++;
 		}
 	}
 	char GetChar(){
