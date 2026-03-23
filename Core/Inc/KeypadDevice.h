@@ -2,7 +2,7 @@
  * KeypadDriver.h
  *
  *  Created on: 22 мар. 2026 г.
- *      Author: Ideapad-43
+ *      Author: Арсений
  */
 
 #ifndef INC_KEYPADDEVICE_H_
@@ -13,6 +13,8 @@
 
 
 #endif /* INC_KEYPADDEVICE_H_ */
+
+#define TimeBetweenUpdates 10; // Для того, чтобы не так часто опрашивать клавиатуру
 
 #include "gpio.h"
 #include <list>

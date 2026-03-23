@@ -198,6 +198,7 @@ int main(void)
 	if (Work) {
 		MainStateMachine.Tick();
 	}
+	HAL_GetTick();
     /* USER CODE BEGIN 3 */
 
   }
