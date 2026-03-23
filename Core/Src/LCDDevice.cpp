@@ -85,7 +85,7 @@ public:
 		this->Send(0b00000010, 0);
 		this->Send(0b00001100, 0);
 	}
-private:
+protected:
 	uint8_t currentLine;
 	uint8_t currentSymbol;
 };
