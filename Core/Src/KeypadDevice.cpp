@@ -6,7 +6,6 @@
  */
 #include "KeypadDevice.h"
 
-
 // Columns are for writing, Rows are for reading
 class KeypadDevice{
 public:
@@ -23,7 +22,7 @@ public:
 	}
 	void UpdateKeymap(){
 		if ((HAL_GetTick() - LastUpdate) < TimeBetweenUpdates) {
-
+			return;
 		}
 		LastUpdate = HAL_GetTick();
 		// Precious pointers, point me to the bright future

@@ -14,7 +14,7 @@
 
 #endif /* INC_KEYPADDEVICE_H_ */
 
-#define TimeBetweenUpdates 10; // Для того, чтобы не так часто опрашивать клавиатуру
+const int TimeBetweenUpdates {10}; // Для того, чтобы не так часто опрашивать клавиатуру
 
 #include "gpio.h"
 #include <list>
