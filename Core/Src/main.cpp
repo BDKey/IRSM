@@ -177,15 +177,19 @@ int main(void)
 
   uint8_t rx_buff[1]={};
 
-  StateMachine MainStateMachine{&Log};
+  /*StateMachine MainStateMachine{&Log};
   State1 state1{ MainStateMachine, "STATE1" };
   State2 state2{ MainStateMachine, "STATE2" };
   MainStateMachine.AddState(&state1);
-  MainStateMachine.AddState(&state2);
+  MainStateMachine.AddState(&state2);*/
+
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  int32_t CH1_DC = 0;
   while (1)
   {
     /* USER CODE END WHILE */
@@ -193,12 +197,22 @@ int main(void)
 	if (rx_buff[0]!=0){
 		rx_buff[0]=0;
 	}
-	if (Work) {
-		MainStateMachine.Tick();
+	while(CH1_DC < 65535)
+	{
+		TIM2->CCR1 = CH1_DC;
+		TIM2->CCR2 = CH1_DC;
+		CH1_DC += 70;
+		HAL_Delay(1);
 	}
-	HAL_GetTick();
-    /* USER CODE BEGIN 3 */
-
+	CH1_DC=65535;
+	while(CH1_DC > 0)
+	{
+		TIM2->CCR1 = CH1_DC;
+		TIM2->CCR2 = CH1_DC;
+		CH1_DC -= 70;
+		HAL_Delay(1);
+	}
+	CH1_DC=0;
   }
   /* USER CODE END 3 */
 }
