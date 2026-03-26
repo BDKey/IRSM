@@ -185,6 +185,9 @@ int main(void)
 
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
+
+  HAL_GPIO_WritePin(GPIOA, IN1_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOA, IN2_Pin, GPIO_PIN_RESET);
   /* USER CODE END 2 */
 
   /* Infinite loop */
