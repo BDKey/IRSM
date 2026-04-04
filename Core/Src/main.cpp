@@ -161,6 +161,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   LCD.Init();
+  Log(false, "Initialized LCD");
 
   //Display welcome-screen
   LCD.Clear();
@@ -188,6 +189,8 @@ int main(void)
 
   HAL_GPIO_WritePin(GPIOA, IN1_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(GPIOA, IN2_Pin, GPIO_PIN_RESET);
+
+  Log(fales, "Initialized L298N Driver");
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -203,7 +206,7 @@ int main(void)
 	while(CH1_DC < 65535)
 	{
 		TIM2->CCR1 = CH1_DC;
-		TIM2->CCR2 = CH1_DC;
+		TIM2->CCR2 = 65535 - CH1_DC;
 		CH1_DC += 70;
 		HAL_Delay(1);
 	}
@@ -211,7 +214,7 @@ int main(void)
 	while(CH1_DC > 0)
 	{
 		TIM2->CCR1 = CH1_DC;
-		TIM2->CCR2 = CH1_DC;
+		TIM2->CCR2 = 65535 - CH1_DC;
 		CH1_DC -= 70;
 		HAL_Delay(1);
 	}

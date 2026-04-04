@@ -19,7 +19,7 @@ public:
 	void Send(uint8_t data, uint8_t flags){
 		if (flags) {
 				currentSymbol++;
-				if (currentSymbol == 21) {
+				if (currentSymbol > ROWS_AMOUNT) {
 					currentSymbol = 0;
 					this->SetLine(currentLine+1);
 				}
