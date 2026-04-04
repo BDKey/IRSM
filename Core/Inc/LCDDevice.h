@@ -13,11 +13,12 @@
 #define BACKLIGHT (1 << 3)
 #define LCD_DELAY_MS 5
 
+#define ROWS_AMOUNT 20
+
 #endif /* INC_LCDDRIVER_H_ */
 
 #include "i2c.h"
 #include <string>
-
-typedef unsigned short uint16_t;
+#include <inttypes.h>
 
 class LCDDevice;

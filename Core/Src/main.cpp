@@ -190,7 +190,7 @@ int main(void)
   HAL_GPIO_WritePin(GPIOA, IN1_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(GPIOA, IN2_Pin, GPIO_PIN_RESET);
 
-  Log(fales, "Initialized L298N Driver");
+  Log(false, "Initialized L298N Driver");
   /* USER CODE END 2 */
 
   /* Infinite loop */

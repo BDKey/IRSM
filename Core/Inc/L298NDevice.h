@@ -16,7 +16,4 @@
 
 #include "tim.h"
 #include "gpio.h"
-
-typedef __uint8_t  uint8_t;
-typedef __uint16_t uint16_t;
-typedef __uint32_t uint32_t;
+#include <inttypes.h>
