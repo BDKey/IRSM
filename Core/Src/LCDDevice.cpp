@@ -51,11 +51,11 @@ public:
 			HAL_I2C_Master_Transmit(&(*hi2c), I2CAddress, data_arr, sizeof(data_arr), HAL_MAX_DELAY);
 			HAL_Delay(LCD_DELAY_MS);
 	}
-	void SetCursor(uint8_t col, uint8_t row) {
-		if ( row >= _numlines ) {
-			row = _numlines-1;    // we count rows starting w/0
-		}
-	}
+	//void SetCursor(uint8_t col, uint8_t row) {
+	//	if ( row >= _numlines ) {
+	//		row = _numlines-1;    // we count rows starting w/0
+	//	}
+	//}
 	//Outdated
 	void SetLine(uint8_t line){
 		currentSymbol=0;

@@ -160,6 +160,8 @@ int main(void)
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
+  Log(false, "Starting up");
+
   LCD.Init();
   Log(false, "Initialized LCD");
 
