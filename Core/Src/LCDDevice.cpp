@@ -73,8 +73,11 @@ public:
 			this->Send(0b11010100,0);
 		} else {
 			currentLine=0;
-			this->Send(0b10000000,0);
+			this->Send(0b10000000,0); // Если не обрабатывается, то переходить на первую строчку
 		}
+	}
+	void NextLine(){
+		SetLine(currentLine+1);
 	}
 	void Write(std::string Text){
 		for (char c : Text){

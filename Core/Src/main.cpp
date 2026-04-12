@@ -30,6 +30,7 @@
 #include "IRSM.cpp"
 #include <cstring>
 #include "LCDDevice.cpp"
+#include "Menu.cpp"
 
 #define LOGUART true
 #define LOGLCD false
@@ -165,6 +166,10 @@ int main(void)
   LCD.Init();
   Log(false, "Initialized LCD");
 
+  std::list<std::string> MenuItems {"Item 1", "Item 2", "Item 3", "Item 4", "Item 5", "Item 6", "Item 7"};
+  Menu TestMenu {MenuItems};
+  Log(false, "Initialized Menu");
+
   //Display welcome-screen
   LCD.Clear();
   LCD.SetLine(1);
@@ -178,7 +183,7 @@ int main(void)
   HAL_Delay(1000);
   LCD.Clear();
 
-  uint8_t rx_buff[1]={};
+  //uint8_t rx_buff[1]={};
 
   /*StateMachine MainStateMachine{&Log};
   State1 state1{ MainStateMachine, "STATE1" };
@@ -186,21 +191,43 @@ int main(void)
   MainStateMachine.AddState(&state1);
   MainStateMachine.AddState(&state2);*/
 
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
+  //HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+  //HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
 
-  HAL_GPIO_WritePin(GPIOA, IN1_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(GPIOA, IN2_Pin, GPIO_PIN_RESET);
+  //HAL_GPIO_WritePin(GPIOA, IN1_Pin, GPIO_PIN_SET);
+  //HAL_GPIO_WritePin(GPIOA, IN2_Pin, GPIO_PIN_RESET);
+  //int32_t CH1_DC = 0;
 
-  Log(false, "Initialized L298N Driver");
+  //Log(false, "Initialized L298N Driver");
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  int32_t CH1_DC = 0;
   while (1)
   {
+	  for (int i=0;i<4;i++) {
+		  LCD.Clear();
+		  LCD.SetLine(1);
+		  for (std::string Item : TestMenu.GetItemsToDisplay(4)) {
+		  	  LCD.Write(Item);
+		  	  LCD.NextLine();
+	  	  }
+	  	  TestMenu.MoveUp();
+	  	  HAL_Delay(1000);
+	  }
+	  for (int i=0;i<4;i++) {
+		  LCD.Clear();
+		  LCD.SetLine(1);
+		  for (std::string Item : TestMenu.GetItemsToDisplay(4)) {
+			  LCD.Write(Item);
+			  LCD.NextLine();
+		  }
+
+		  TestMenu.MoveDown();
+		  HAL_Delay(1000);
+	  }
     /* USER CODE END WHILE */
+	  /*
 	HAL_UART_Receive_IT(&huart1, rx_buff, 1);
 	if (rx_buff[0]!=0){
 		rx_buff[0]=0;
@@ -220,7 +247,7 @@ int main(void)
 		CH1_DC -= 70;
 		HAL_Delay(1);
 	}
-	CH1_DC=0;
+	CH1_DC=0;*/
   }
   /* USER CODE END 3 */
 }

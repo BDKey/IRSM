@@ -60,6 +60,7 @@ public:
 		std::tuple<bool, char> Key = buffer.front();
 		buffer.pop_front();
 		return Key;
+
 	}
 	std::list<std::tuple<bool, char>> GetChars(){
 		UpdateKeymap();
@@ -67,6 +68,9 @@ public:
 		std::list<std::tuple<bool, char>> Keys = buffer;
 		buffer.clear();
 		return Keys;
+	}
+	void ClearBuffer(){
+
 	}
 protected:
 	std::list<std::list<uint32_t>> KeyMap{};
