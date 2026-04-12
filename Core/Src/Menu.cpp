@@ -26,7 +26,7 @@ public:
 			ItemsToDisplay.push_back(*iter);
 			iter++;
 		}
-		ItemsToDisplay.resize(amount, ""); // For the compability with the LCD display (menu may be LESS than amount)
+		ItemsToDisplay.resize(amount, ""); // For the compatibility with the LCD display (menu may be LESS than amount)
 		return ItemsToDisplay;
 	}
 	void MoveUp() {
