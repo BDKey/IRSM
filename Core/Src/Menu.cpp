@@ -8,6 +8,51 @@
 
 #include "Menu.h"
 
+class Menu {
+public:
+	std::list<std::string> MenuItems;
+	void Menu(uint8_t screenLength, std::list<std::string> MenuItems = {}){
+		cursor={};
+		this->screenLength = screenLength;
+		this->MenuItems = MenuItems;
+	}
+	void MoveCursor(uint8_t distance = 1){
+		// Handling moving cursor up (down on the screen)
+		if (distance > 0 && ((cursor + distance) >= (MenuItems.size() - 1))) {
+			cursor = MenuItems.size() - 1;
+		}
+		// Handling moving cursor down (up on the screen)
+		else if (distance < 0 && ((cursor + distance) <= (1 - screenLength))) {
+			cursor = screenLength - 1;
+		}
+		// We can add zero check here but this probably will only slow down the process
+		else cursor += distance;
+	}
+	void AddItem(std::string Item){
+		MenuItems.push_back(Item);
+	}
+	void AddItems(std::list<std::string> Items){
+		MenuItems.splice(MenbuItems.end(), Items);
+	}
+	// Return Items to display on screen
+	void GetItems(){
+		for (int i=0;i<screenLength;i++){
+
+		}
+	}
+	// Used to get Items from the "screen" (in commas because it's not a real screen)
+	// If offset > screenLength then returns nothing (STM hates error handling)
+	std::string GetItem(uint8_t offset = 0){
+
+	}
+private:
+	uint8_t cursor;
+	uint8_t screenLength;
+};
+
+
+// OUTDATED/UNUSED
+/*
 class Menu{
 public:
 	std::list<std::string> MenuItems;
@@ -28,7 +73,7 @@ public:
 			ItemsToDisplay.push_back(*iter);
 			iter++;
 		}
-		ItemsToDisplay.resize(amount, ""); // For the compatibility with the LCD display (menu may be LESS than amount) # Alles fur alles
+		ItemsToDisplay.resize(amount, ""); // For the compatibility with the LCD display (menu may be LESS than the amount)
 		return ItemsToDisplay;
 	}
 	void MoveUp() {
@@ -40,6 +85,7 @@ public:
 		if (Cursor+Offset > 0) Cursor--;
 	}
 	std::string GetCurrentItem() {
-
+		return ItemsToDisplay[Cursor+Offset];
 	}
 };
+*/
