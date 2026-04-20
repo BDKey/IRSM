@@ -46,7 +46,7 @@ public:
 
 	}
 private:
-	uint8_t cursor;
+	int8_t cursor;
 	uint8_t screenLength;
 };
 
