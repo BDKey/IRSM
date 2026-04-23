@@ -73,8 +73,8 @@ void Log(bool IsError, std::string Text){
 	if (!(LOGUART || LOGLCD)) return; // Don't do anything if no logging required
 	Text = (IsError ? "[ERROR]: " : "[INFO]: ") + Text;
 	if (LOGLCD){ //Log data to the LCD
-		LCD.Clear();
-		LCD.Write((Text).c_str());
+		LCD.clear();
+		LCD.write((Text).c_str());
 	}
 	if (LOGUART){ // Log data to the UART interface
 		Text+="\r\n";
@@ -163,7 +163,7 @@ int main(void)
 
   Log(false, "Starting up");
 
-  LCD.Init();
+  LCD.init();
   Log(false, "Initialized LCD");
 
   std::list<std::string> MenuItems {"Item 1", "Item 2", "Item 3", "Item 4", "Item 5", "Item 6", "Item 7"};
@@ -171,17 +171,17 @@ int main(void)
   Log(false, "Initialized Menu");
 
   //Display welcome-screen
-  LCD.Clear();
-  LCD.SetLine(1);
-  LCD.Write("Industrial Rotary");
-  LCD.SetLine(2);
-  LCD.Write("Slicer Machine");
-  LCD.SetLine(3);
-  LCD.Write("Shamrin-Tebenkov's");
-  LCD.SetLine(4);
-  LCD.Write("Production");
+  LCD.clear();
+  LCD.setLine(1);
+  LCD.write("Industrial Rotary");
+  LCD.setLine(2);
+  LCD.write("Slicer Machine");
+  LCD.setLine(3);
+  LCD.write("Shamrin-Tebenkov's");
+  LCD.setLine(4);
+  LCD.write("Production");
   HAL_Delay(1000);
-  LCD.Clear();
+  LCD.clear();
 
   //uint8_t rx_buff[1]={};
 
@@ -203,24 +203,33 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint8_t cursorLine = 2;
   while (1)
   {
-	  for (int i=0;i<4;i++) {
-		  LCD.Clear();
-		  LCD.SetLine(1);
+	  for (int i=0;i<6;i++) {
+		  LCD.clear();
+		  LCD.setLine(1);
+		  cursorLine = 2;
 		  for (std::string Item : TestMenu.getItems()) {
-		  	  LCD.Write(Item);
-		  	  LCD.NextLine();
+			  if (cursorLine==1) LCD.write("> ");
+			  //else LCD.write("  ");
+			  if (cursorLine>0) cursorLine--;
+		  	  LCD.write(Item);
+		  	  LCD.nextLine();
 	  	  }
 	  	  TestMenu.moveCursor(1);
 	  	  HAL_Delay(1000);
 	  }
-	  for (int i=0;i<4;i++) {
-		  LCD.Clear();
-		  LCD.SetLine(1);
+	  for (int i=0;i<6;i++) {
+		  LCD.clear();
+		  LCD.setLine(1);
+		  cursorLine = 2;
 		  for (std::string Item : TestMenu.getItems()) {
-			  LCD.Write(Item);
-			  LCD.NextLine();
+			  if (cursorLine==1) LCD.write("> ");
+			  //else LCD.write("  ");
+			  if (cursorLine>0) cursorLine--;
+			  LCD.write(Item);
+			  LCD.nextLine();
 		  }
 
 		  TestMenu.moveCursor(-1);

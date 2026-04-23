@@ -73,3 +73,5 @@ void Error_Handler(void);
 #endif
 
 #endif /* __MAIN_H */
+
+#include <inttypes.h>

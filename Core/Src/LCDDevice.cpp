@@ -18,13 +18,14 @@ public:
 		this->hi2c = &hi2c;
 		currentLine = 1;
 		currentSymbol = 0;
+		utf_hi_char = -1;
 	}
-	void Send(uint8_t data, uint8_t flags){
+	void send(uint16_t data, uint8_t flags){
 		if (flags) {
 				currentSymbol++;
 				if (currentSymbol > ROWS_AMOUNT) {
 					currentSymbol = 0;
-					this->SetLine(currentLine+1);
+					this->setLine(currentLine+1);
 				}
 			}
 			HAL_StatusTypeDef res;
@@ -57,48 +58,77 @@ public:
 	//	}
 	//}
 	//Outdated
-	void SetLine(uint8_t line){
+	void setLine(uint8_t line){
 		currentSymbol=0;
 		if (line==1){
 			currentLine=1;
-			this->Send(0b10000000,0);
+			this->send(0b10000000,0);
 		} else if (line==2) {
 			currentLine=2;
-			this->Send(0b11000000,0);
+			this->send(0b11000000,0);
 		} else if (line==3) {
 			currentLine=3;
-			this->Send(0b10010100,0);
+			this->send(0b10010100,0);
 		} else if (line==4) {
 			currentLine=4;
-			this->Send(0b11010100,0);
+			this->send(0b11010100,0);
 		} else {
 			currentLine=0;
-			this->Send(0b10000000,0); // Если не обрабатывается, то переходить на первую строчку
+			this->send(0b10000000,0); // Если не обрабатывается, то переходить на первую строчку
 		}
 	}
-	void NextLine(){
-		SetLine(currentLine+1);
+	void nextLine(){
+		setLine(currentLine+1);
 	}
-	void Write(std::string Text){
+	void write(std::string Text){
 		for (char c : Text){
-			this->Send((uint8_t)c, 1);
+			this->send((uint8_t)c, 1);
 		}
 	}
-	void WriteDecoded(uint8_t Symbol){
-		this->Send(Symbol, 1);
+	void write(uint8_t Symbol){
+		this->send(Symbol, 1);
 	}
-	void Clear(){
+	void write(char symbol, uint8_t flag){
+		this->send(symbol, flag);
+	}
+	void write(uint16_t symbol, uint8_t flag){
+			this->send(symbol, flag);
+	}
+	void LiquidCrystalRus::write(uint8_t value)
+	{
+		uint8_t out_char=value;
+
+		if (utf_hi_char >= 0) {
+			if (value >= 0xc0 || value < 0x80) { // it was not an UTF-8 cyrillic char
+				write(0xd0+utf_hi_char, 1);
+				write(out_char, 1);
+			} else {
+				value &= 0x3f;
+				if (!utf_hi_char && (value == 1))
+					this->write(0xa2, 1); // Ё
+				else if ((utf_hi_char == 1) && (value == 0x11))
+					this->write(0xb5, 1); // ё
+				else
+					write(utf_recode[value], 1);
+			}
+			utf_hi_char = -1;
+		} else if (value>=0xd0 && value<0xd2 && utf_hi_char<0) {
+			utf_hi_char = value - 0xd0;
+		} else write(out_char, 1);
+	}
+	void clear(){
 		currentLine=1;
 		currentSymbol=0;
-		this->Send(0b00000001, 0);
+		this->send(0b00000001, 0);
 	}
-	void Init(){
+	void init(){
 		//20x4
-		this->Send(0x30, 0);
-		this->Send(0x02, 0);
-		this->Send(0x0C, 0);
+		this->send(0x30, 0);
+		this->send(0x02, 0);
+		this->send(0x0C, 0);
 	}
 protected:
+	int8_t utf_hi_char;
 	uint8_t currentLine;
 	uint8_t currentSymbol;
 };

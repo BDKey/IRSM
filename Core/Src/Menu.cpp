@@ -16,7 +16,7 @@ public:
 		this->cursor = -this->offset;
 		this->menuItems = menuItems;
 	}
-	void moveCursor(uint8_t distance = 1){
+	void moveCursor(int8_t distance = 1){
 		// Handling moving cursor up (down on the screen)
 		if (distance > 0 && ((cursor + offset + distance) >= (menuItems.size() - 1))) {
 			cursor = menuItems.size() - 1 - offset;
@@ -56,7 +56,7 @@ public:
 			if (listPointer >= menuItems.size()){
 				if (createEmptyItems) items.push_back("");
 				itemsLeft--;
-				//listPointer++; // We can ignore it, it will not affect the workflow
+				//listPointer++; // We can ignore it, it doesn't affect the workflow
 			}
 			else{
 				items.push_back(*iter);
