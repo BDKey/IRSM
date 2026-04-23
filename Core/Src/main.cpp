@@ -167,7 +167,7 @@ int main(void)
   Log(false, "Initialized LCD");
 
   std::list<std::string> MenuItems {"Item 1", "Item 2", "Item 3", "Item 4", "Item 5", "Item 6", "Item 7"};
-  Menu TestMenu {MenuItems};
+  Menu TestMenu {4, 1, MenuItems};
   Log(false, "Initialized Menu");
 
   //Display welcome-screen
@@ -208,22 +208,22 @@ int main(void)
 	  for (int i=0;i<4;i++) {
 		  LCD.Clear();
 		  LCD.SetLine(1);
-		  for (std::string Item : TestMenu.GetItemsToDisplay(4)) {
+		  for (std::string Item : TestMenu.getItems()) {
 		  	  LCD.Write(Item);
 		  	  LCD.NextLine();
 	  	  }
-	  	  TestMenu.MoveUp();
+	  	  TestMenu.moveCursor(1);
 	  	  HAL_Delay(1000);
 	  }
 	  for (int i=0;i<4;i++) {
 		  LCD.Clear();
 		  LCD.SetLine(1);
-		  for (std::string Item : TestMenu.GetItemsToDisplay(4)) {
+		  for (std::string Item : TestMenu.getItems()) {
 			  LCD.Write(Item);
 			  LCD.NextLine();
 		  }
 
-		  TestMenu.MoveDown();
+		  TestMenu.moveCursor(-1);
 		  HAL_Delay(1000);
 	  }
     /* USER CODE END WHILE */
