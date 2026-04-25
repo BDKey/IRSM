@@ -29,7 +29,7 @@
 
 #include "IRSM.cpp"
 #include <cstring>
-#include "LCDDevice.cpp"
+#include "LCDDevice.h"
 #include "Menu.cpp"
 
 #define LOGUART true
@@ -172,14 +172,17 @@ int main(void)
 
   //Display welcome-screen
   LCD.clear();
-  LCD.setLine(1);
-  LCD.write("Industrial Rotary");
-  LCD.setLine(2);
-  LCD.write("Slicer Machine");
-  LCD.setLine(3);
-  LCD.write("Shamrin-Tebenkov's");
-  LCD.setLine(4);
-  LCD.write("Production");
+  LCD.write("01234567890123456789aaaaaaaaaabbbbbbbbbb01234567890123456789ccccccccccdddddddddd");
+  HAL_Delay(1000);
+  LCD.clear();
+  LCD.setCursor(0,1);
+  LCD.write(" Слайсер Роторный  ");
+  LCD.setCursor(0,2);
+  LCD.write("   Промышленный    ");
+  LCD.setCursor(0,3);
+  LCD.write("      Изделие      ");
+  LCD.setCursor(0,4);
+  LCD.write("Тебенькова-Шамрина ");
   HAL_Delay(1000);
   LCD.clear();
 

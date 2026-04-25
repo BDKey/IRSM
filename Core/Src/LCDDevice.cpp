@@ -6,142 +6,173 @@
  */
 
 #include <LCDDevice.h>
-#include <stm32f1xx_hal.h>
-#include <stm32f1xx_hal_def.h>
-#include <stm32f1xx_hal_i2c.h>
-#include <sys/_stdint.h>
 
 const char utf_recode[] { 0x70, 0x63, 0xbf, 0x79, 0xe4, 0x78, 0xe5, 0xc0, 0xc1,
-		0xe6, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0x41, 0xa0, 0x42, 0xa1, 0xe0,
-		0x45, 0xa3, 0xa4, 0xa5, 0xa6, 0x4b, 0xa7, 0x4d, 0x48, 0x4f, 0xa8, 0x50,
-		0x43, 0x54, 0xa9, 0xaa, 0x58, 0xe1, 0xab, 0xac, 0xe2, 0xad, 0xae, 0x62,
-		0xaf, 0xb0, 0xb1, 0x61, 0xb2, 0xb3, 0xb4, 0xe3, 0x65, 0xb6, 0xb7, 0xb8,
-		0xb9, 0xba, 0xbb, 0xbc, 0xbd, 0x6f, 0xbe };
-const int row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
+			0xe6, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0x41, 0xa0, 0x42, 0xa1, 0xe0,
+			0x45, 0xa3, 0xa4, 0xa5, 0xa6, 0x4b, 0xa7, 0x4d, 0x48, 0x4f, 0xa8, 0x50,
+			0x43, 0x54, 0xa9, 0xaa, 0x58, 0xe1, 0xab, 0xac, 0xe2, 0xad, 0xae, 0x62,
+			0xaf, 0xb0, 0xb1, 0x61, 0xb2, 0xb3, 0xb4, 0xe3, 0x65, 0xb6, 0xb7, 0xb8,
+			0xb9, 0xba, 0xbb, 0xbc, 0xbd, 0x6f, 0xbe };
 
-// WARNING: REQUIRES TOTAL REWORK
-class LCDDevice {
-public:
-	uint16_t I2CAddress;
-	I2C_HandleTypeDef *hi2c;
-	LCDDevice(I2C_HandleTypeDef &hi2c, uint16_t I2CAddress) {
-		this->I2CAddress = (I2CAddress << 1);
-		this->hi2c = &hi2c;
-		currentLine = 1;
-		currentSymbol = 0;
-		utf_hi_char = -1;
-	}
-	void send(uint16_t data, uint8_t flags) {
-		if (flags) {
-			currentSymbol++;
-			if (currentSymbol > ROWS_AMOUNT) {
-				currentSymbol = 0;
-				this->setLine(currentLine + 1);
-			}
+// Now in rework
+LCDDevice::LCDDevice(I2C_HandleTypeDef &hi2c, uint16_t I2CAddress) {
+	this->I2CAddress = (I2CAddress << 1);
+	this->hi2c = &hi2c;
+	this->currentRow = 0;
+	this->currentCol = 0;
+	this->utf_hi_char = -1;
+	_numlines = 4;
+	_currline = 0;
+}
+void LCDDevice::send(uint8_t data, uint8_t flags) {
+	if (flags) {
+		currentCol++;
+		if (currentCol > ROWS_AMOUNT) {
+			currentCol = 0;
+			if (currentRow==3) currentRow=0;
+			setCursor(0, currentRow);
+			currentRow++; // ENDED HERE
 		}
-		HAL_StatusTypeDef res;
-		// бесконечный цикл
-		for (;;) {
-			// проверяем, готово ли устройство по адресу lcd_addr для связи
-			res = HAL_I2C_IsDeviceReady(&(*hi2c), I2CAddress, 1, HAL_MAX_DELAY);
-			// если да, то выходим из бесконечного цикла
-			if (res == HAL_OK)
-				break;
-		}
-		// операция И с 1111 0000 приводит к обнулению бит с 0 по 3, остаются биты с 4 по 7
-		uint8_t up = data & 0xF0;
-		// то же самое, но data сдвигается на 4 бита влево
-		uint8_t lo = (data << 4) & 0xF0;
-
-		uint8_t data_arr[4];
-		// 4-7 биты содержат информацию, биты 0-3 настраивают работу дисплея
-		data_arr[0] = up | flags | BACKLIGHT | PIN_EN;
-		// дублирование сигнала, на выводе Е в этот раз 0
-		data_arr[1] = up | flags | BACKLIGHT;
-		data_arr[2] = lo | flags | BACKLIGHT | PIN_EN;
-		data_arr[3] = lo | flags | BACKLIGHT;
-
-		HAL_I2C_Master_Transmit(&(*hi2c), I2CAddress, data_arr,
-				sizeof(data_arr), HAL_MAX_DELAY);
-		HAL_Delay(LCD_DELAY_MS);
 	}
-	//void SetCursor(uint8_t col, uint8_t row) {
-	//	if ( row >= _numlines ) {
-	//		row = _numlines-1;    // we count rows starting w/0
-	//	}
-	//}
-	//Outdated
-	void setLine(uint8_t line) {
-		currentSymbol = 0;
-		if (line == 1) {
-			currentLine = 1;
-			this->send(0b10000000, 0);
-		} else if (line == 2) {
-			currentLine = 2;
-			this->send(0b11000000, 0);
-		} else if (line == 3) {
-			currentLine = 3;
-			this->send(0b10010100, 0);
-		} else if (line == 4) {
-			currentLine = 4;
-			this->send(0b11010100, 0);
+	HAL_StatusTypeDef res;
+	// бесконечный цикл
+	for (;;) {
+		// проверяем, готово ли устройство по адресу lcd_addr для связи
+		res = HAL_I2C_IsDeviceReady(&(*hi2c), I2CAddress, 1, HAL_MAX_DELAY);
+		// если да, то выходим из бесконечного цикла
+		if (res == HAL_OK)
+			break;
+	}
+	// операция И с 1111 0000 приводит к обнулению бит с 0 по 3, остаются биты с 4 по 7
+	uint8_t up = data & 0xF0;
+	// то же самое, но data сдвигается на 4 бита влево
+	uint8_t lo = (data << 4) & 0xF0;
+
+	uint8_t data_arr[4];
+	// 4-7 биты содержат информацию, биты 0-3 настраивают работу дисплея
+	data_arr[0] = up | flags | BACKLIGHT | PIN_EN;
+	// дублирование сигнала, на выводе Е в этот раз 0
+	data_arr[1] = up | flags | BACKLIGHT;
+	data_arr[2] = lo | flags | BACKLIGHT | PIN_EN;
+	data_arr[3] = lo | flags | BACKLIGHT;
+
+	HAL_I2C_Master_Transmit(&(*hi2c), I2CAddress, data_arr, sizeof(data_arr),
+			HAL_MAX_DELAY);
+	HAL_Delay(LCD_DELAY_MS);
+}
+inline void LCDDevice::command(uint8_t value) {
+  send(value, 0);
+}
+void LCDDevice::write(uint8_t value) {
+	out_char = value;
+	if (utf_hi_char >= 0) {
+		if (value >= 0xc0 || value < 0x80) { // it was not an UTF-8 cyrillic char
+			this->send(0xd0 + utf_hi_char, 1);
+			this->send(out_char, 1);
 		} else {
-			currentLine = 0;
-			this->send(0b10000000, 0); // Если не обрабатывается, то переходить на первую строчку
+			value &= 0x3f;
+			if (!utf_hi_char && (value == 1))
+				this->send(0xa2, 1); // Ё
+			else if ((utf_hi_char == 1) && (value == 0x11))
+				this->send(0xb5, 1); // ё
+			else
+				this->send(utf_recode[value], 1);
 		}
-	}
-	void nextLine() {
-		setLine(currentLine + 1);
-	}
-	void write(std::string Text) {
-		for (char c : Text) {
-			this->send((uint8_t) c, 1);
-		}
-	}
-	void write(uint8_t Symbol) {
-		this->send(Symbol, 1);
-	}
-	void write(char symbol, uint8_t flag) {
-		this->send(symbol, flag);
-	}
-	void write(uint16_t symbol, uint8_t flag) {
-		this->send(symbol, flag);
-	}
-	void LiquidCrystalRus::write(uint8_t value) {
-		uint8_t out_char = value;
+		utf_hi_char = -1;
+	} else if (value >= 0xd0 && value < 0xd2 && utf_hi_char < 0) {
+		utf_hi_char = value - 0xd0;
+	} else
+		this->send(out_char, 1);
+}
+void LCDDevice::write(std::string Text) {
+	for (char c : Text)
+		this->send((uint8_t)c, 1);
+}
+void LCDDevice::setCursor(uint8_t col, uint8_t row)
+{
+  int row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
+  if ( row >= _numlines ) {
+    row = _numlines-1;    // we count rows starting w/0
+  }
 
-		if (utf_hi_char >= 0) {
-			if (value >= 0xc0 || value < 0x80) { // it was not an UTF-8 cyrillic char
-				write(0xd0 + utf_hi_char, 1);
-				write(out_char, 1);
-			} else {
-				value &= 0x3f;
-				if (!utf_hi_char && (value == 1))
-					this->write(0xa2, 1); // Ё
-				else if ((utf_hi_char == 1) && (value == 0x11))
-					this->write(0xb5, 1); // ё
-				else
-					write(utf_recode[value], 1);
-			}
-			utf_hi_char = -1;
-		} else if (value >= 0xd0 && value < 0xd2 && utf_hi_char < 0) {
-			utf_hi_char = value - 0xd0;
-		} else
-			write(out_char, 1);
+  command(LCD_SETDDRAMADDR | (col + row_offsets[row]));
+}
+void LCDDevice::setLine(uint8_t line) {
+	currentCol = 0;
+	if (line == 1) {
+		currentRow = 1;
+		this->send(0b10000000, 0);
+	} else if (line == 2) {
+		currentRow = 2;
+		this->send(0b11000000, 0);
+	} else if (line == 3) {
+		currentRow = 3;
+		this->send(0b10010100, 0);
+	} else if (line == 4) {
+		currentRow = 4;
+		this->send(0b11010100, 0);
+	} else {
+		currentRow = 0;
+		this->send(0b10000000, 0); // Если не обрабатывается, то переходить на первую строчку
 	}
-	void clear() {
-		currentLine = 1;
-		currentSymbol = 0;
-		this->send(0b00000001, 0);
-	}
-	void init() {
-		//20x4
-		this->send(0x30, 0);
-		this->send(0x02, 0);
-		this->send(0x0C, 0);
-	}
-protected:
-	int8_t utf_hi_char;
-	uint8_t currentLine;
-	uint8_t currentSymbol;
-};
+}
+void LCDDevice::nextLine() {
+	setLine(currentRow + 1);
+}
+void LCDDevice::clear() {
+	currentRow = 1;
+	currentCol = 0;
+	this->send(0b00000001, 0);
+}
+void LCDDevice::init() {
+	//20x4
+	this->send(0x30, 0);
+	this->send(0x02, 0);
+	this->send(0x0C, 0);
+	utf_hi_char = -1;
+}
+
+/*void nextLine() {
+ setLine(currentRow + 1);
+ }
+ void write(std::string Text) {
+ for (char c : Text) {
+ this->send((uint8_t) c, 1);
+ }
+ }
+ void write(uint8_t Symbol) {
+ this->send(Symbol, 1);
+ }
+ void write(char symbol, uint8_t flag) {
+ this->send(symbol, flag);
+ }
+ void write(uint16_t symbol, uint8_t flag) {
+ this->send(symbol, flag);
+ }
+ void write(uint8_t value) {
+ uint8_t out_char = value;
+
+ if (utf_hi_char >= 0) {
+ if (value >= 0xc0 || value < 0x80) { // it was not an UTF-8 cyrillic char
+ write(0xd0 + utf_hi_char, 1);
+ write(out_char, 1);
+ } else {
+ value &= 0x3f;
+ if (!utf_hi_char && (value == 1))
+ this->write(0xa2, 1); // Ё
+ else if ((utf_hi_char == 1) && (value == 0x11))
+ this->write(0xb5, 1); // ё
+ else
+ write(utf_recode[value], 1);
+ }
+ utf_hi_char = -1;
+ } else if (value >= 0xd0 && value < 0xd2 && utf_hi_char < 0) {
+ utf_hi_char = value - 0xd0;
+ } else
+ write(out_char, 1);
+ }
+ void clear() {
+ currentRow = 1;
+ currentCol = 0;
+ this->send(0b00000001, 0);
+ }*/
