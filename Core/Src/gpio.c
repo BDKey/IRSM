@@ -54,7 +54,7 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(BUILTIN_LED_GPIO_Port, BUILTIN_LED_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, IN2_Pin|IN1_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOA, Stopper_pin_Pin|IN2_Pin|IN1_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin : BUILTIN_LED_Pin */
   GPIO_InitStruct.Pin = BUILTIN_LED_Pin;
@@ -63,12 +63,32 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(BUILTIN_LED_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : IN2_Pin IN1_Pin */
-  GPIO_InitStruct.Pin = IN2_Pin|IN1_Pin;
+  /*Configure GPIO pins : Stopper_pin_Pin IN2_Pin IN1_Pin */
+  GPIO_InitStruct.Pin = Stopper_pin_Pin|IN2_Pin|IN1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : Keyboard_pin6_Pin Keyboard_pin7_Pin Keyboard_pin8_Pin Keyboard_pin9_Pin
+                           IR_sensor_pin_Pin Keyboard_pin3_Pin Keyboard_pin1_Pin */
+  GPIO_InitStruct.Pin = Keyboard_pin6_Pin|Keyboard_pin7_Pin|Keyboard_pin8_Pin|Keyboard_pin9_Pin
+                          |IR_sensor_pin_Pin|Keyboard_pin3_Pin|Keyboard_pin1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : Keyboard_pin5_Pin Keyboard_pin4_Pin */
+  GPIO_InitStruct.Pin = Keyboard_pin5_Pin|Keyboard_pin4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : Keyboard_pin2_Pin */
+  GPIO_InitStruct.Pin = Keyboard_pin2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(Keyboard_pin2_GPIO_Port, &GPIO_InitStruct);
 
 }
 

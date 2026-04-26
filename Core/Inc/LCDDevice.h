@@ -43,7 +43,6 @@ public:
 	void write(uint8_t value);
 	void write(std::string Text);
 	void setCursor(uint8_t col, uint8_t row);
-	void setLine(uint8_t line);
 	void nextLine();
 	void clear();
 	void init();

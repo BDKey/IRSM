@@ -173,15 +173,16 @@ int main(void)
   //Display welcome-screen
   LCD.clear();
   LCD.write("01234567890123456789aaaaaaaaaabbbbbbbbbb01234567890123456789ccccccccccdddddddddd");
-  HAL_Delay(1000);
+  LCD.write("this is a test message that is supposed to show any errors that may occure there");
+  HAL_Delay(2000);
   LCD.clear();
-  LCD.setCursor(0,1);
+  LCD.setCursor(0,0);
   LCD.write(" Слайсер Роторный  ");
-  LCD.setCursor(0,2);
+  LCD.setCursor(0,1);
   LCD.write("   Промышленный    ");
-  LCD.setCursor(0,3);
+  LCD.setCursor(0,2);
   LCD.write("      Изделие      ");
-  LCD.setCursor(0,4);
+  LCD.setCursor(0,3);
   LCD.write("Тебенькова-Шамрина ");
   HAL_Delay(1000);
   LCD.clear();
@@ -211,7 +212,7 @@ int main(void)
   {
 	  for (int i=0;i<6;i++) {
 		  LCD.clear();
-		  LCD.setLine(1);
+		  LCD.setCursor(0,0);
 		  cursorLine = 2;
 		  for (std::string Item : TestMenu.getItems()) {
 			  if (cursorLine==1) LCD.write("> ");
@@ -225,7 +226,7 @@ int main(void)
 	  }
 	  for (int i=0;i<6;i++) {
 		  LCD.clear();
-		  LCD.setLine(1);
+		  LCD.setCursor(0,0);
 		  cursorLine = 2;
 		  for (std::string Item : TestMenu.getItems()) {
 			  if (cursorLine==1) LCD.write("> ");

@@ -59,10 +59,32 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define BUILTIN_LED_Pin GPIO_PIN_13
 #define BUILTIN_LED_GPIO_Port GPIOC
+#define Stopper_pin_Pin GPIO_PIN_2
+#define Stopper_pin_GPIO_Port GPIOA
 #define IN2_Pin GPIO_PIN_5
 #define IN2_GPIO_Port GPIOA
 #define IN1_Pin GPIO_PIN_7
 #define IN1_GPIO_Port GPIOA
+#define Keyboard_pin6_Pin GPIO_PIN_0
+#define Keyboard_pin6_GPIO_Port GPIOB
+#define Keyboard_pin7_Pin GPIO_PIN_1
+#define Keyboard_pin7_GPIO_Port GPIOB
+#define Keyboard_pin8_Pin GPIO_PIN_10
+#define Keyboard_pin8_GPIO_Port GPIOB
+#define Keyboard_pin9_Pin GPIO_PIN_11
+#define Keyboard_pin9_GPIO_Port GPIOB
+#define IR_sensor_pin_Pin GPIO_PIN_13
+#define IR_sensor_pin_GPIO_Port GPIOB
+#define Keyboard_pin5_Pin GPIO_PIN_12
+#define Keyboard_pin5_GPIO_Port GPIOA
+#define Keyboard_pin4_Pin GPIO_PIN_15
+#define Keyboard_pin4_GPIO_Port GPIOA
+#define Keyboard_pin3_Pin GPIO_PIN_3
+#define Keyboard_pin3_GPIO_Port GPIOB
+#define Keyboard_pin2_Pin GPIO_PIN_4
+#define Keyboard_pin2_GPIO_Port GPIOB
+#define Keyboard_pin1_Pin GPIO_PIN_5
+#define Keyboard_pin1_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
@@ -73,5 +95,3 @@ void Error_Handler(void);
 #endif
 
 #endif /* __MAIN_H */
-
-#include <inttypes.h>

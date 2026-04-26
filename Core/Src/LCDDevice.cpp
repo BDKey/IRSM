@@ -26,13 +26,8 @@ LCDDevice::LCDDevice(I2C_HandleTypeDef &hi2c, uint16_t I2CAddress) {
 }
 void LCDDevice::send(uint8_t data, uint8_t flags) {
 	if (flags) {
-		currentCol++;
-		if (currentCol > ROWS_AMOUNT) {
-			currentCol = 0;
-			if (currentRow==3) currentRow=0;
-			setCursor(0, currentRow);
-			currentRow++; // ENDED HERE
-		}
+		if (currentCol >= ROWS_AMOUNT) nextLine();
+		else currentCol++;
 	}
 	HAL_StatusTypeDef res;
 	// бесконечный цикл
@@ -90,45 +85,27 @@ void LCDDevice::write(std::string Text) {
 }
 void LCDDevice::setCursor(uint8_t col, uint8_t row)
 {
-  int row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
-  if ( row >= _numlines ) {
-    row = _numlines-1;    // we count rows starting w/0
-  }
-
-  command(LCD_SETDDRAMADDR | (col + row_offsets[row]));
+	currentCol = col;
+	currentRow = row;
+	int row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
+	if ( row >= _numlines )
+		row = _numlines-1;    // we count rows starting w/0
+	command(LCD_SETDDRAMADDR | (col + row_offsets[row]));
 }
-void LCDDevice::setLine(uint8_t line) {
-	currentCol = 0;
-	if (line == 1) {
-		currentRow = 1;
-		this->send(0b10000000, 0);
-	} else if (line == 2) {
-		currentRow = 2;
-		this->send(0b11000000, 0);
-	} else if (line == 3) {
-		currentRow = 3;
-		this->send(0b10010100, 0);
-	} else if (line == 4) {
-		currentRow = 4;
-		this->send(0b11010100, 0);
-	} else {
-		currentRow = 0;
-		this->send(0b10000000, 0); // Если не обрабатывается, то переходить на первую строчку
-	}
-}
-void LCDDevice::nextLine() {
-	setLine(currentRow + 1);
+void LCDDevice::nextLine(){
+	if (currentRow==3) setCursor(0,0);
+	else setCursor(0, currentRow+1);
 }
 void LCDDevice::clear() {
-	currentRow = 1;
+	currentRow = 0;
 	currentCol = 0;
-	this->send(0b00000001, 0);
+	send(0b00000001, 0);
 }
 void LCDDevice::init() {
 	//20x4
-	this->send(0x30, 0);
-	this->send(0x02, 0);
-	this->send(0x0C, 0);
+	send(0x30, 0);
+	send(0x02, 0);
+	send(0x0C, 0);
 	utf_hi_char = -1;
 }
 
