@@ -173,8 +173,9 @@ int main(void)
   //Display welcome-screen
   LCD.clear();
   LCD.write("01234567890123456789aaaaaaaaaabbbbbbbbbb01234567890123456789ccccccccccdddddddddd");
+  HAL_Delay(5000);
   LCD.write("this is a test message that is supposed to show any errors that may occure there");
-  HAL_Delay(2000);
+  HAL_Delay(5000);
   LCD.clear();
   LCD.setCursor(0,0);
   LCD.write(" Слайсер Роторный  ");
