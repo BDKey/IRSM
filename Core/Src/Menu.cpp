@@ -18,7 +18,7 @@ public:
 	}
 	void moveCursor(int8_t distance = 1){
 		// Handling moving cursor up (down on the screen)
-		if (distance > 0 && ((cursor + offset + distance) >= (menuItems.size() - 1))) {
+		if (distance > 0 && ((cursor + offset + distance) >= ((int)menuItems.size() - 1))) {
 			cursor = menuItems.size() - 1 - offset;
 		}
 		// Handling moving cursor down (up on the screen)
@@ -53,7 +53,7 @@ public:
 
 		// Getting items
 		while (itemsLeft) {
-			if (listPointer >= menuItems.size()){
+			if (listPointer >= (int)menuItems.size()){
 				if (createEmptyItems) items.push_back("");
 				itemsLeft--;
 				//listPointer++; // We can ignore it, it doesn't affect the workflow

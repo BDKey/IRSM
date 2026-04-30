@@ -35,8 +35,7 @@ void LCDDevice::send(uint8_t data, uint8_t flags) {
 		// проверяем, готово ли устройство по адресу lcd_addr для связи
 		res = HAL_I2C_IsDeviceReady(&(*hi2c), I2CAddress, 1, HAL_MAX_DELAY);
 		// если да, то выходим из бесконечного цикла
-		if (res == HAL_OK)
-			break;
+		if (res == HAL_OK) break;
 	}
 	// операция И с 1111 0000 приводит к обнулению бит с 0 по 3, остаются биты с 4 по 7
 	uint8_t up = data & 0xF0;
