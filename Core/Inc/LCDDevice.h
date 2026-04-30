@@ -29,6 +29,7 @@
 #include "i2c.h"
 #include <string>
 #include <inttypes.h>
+#include <functional>
 
 #include <stm32f1xx_hal.h>
 #include <stm32f1xx_hal_def.h>
@@ -37,7 +38,8 @@
 
 class LCDDevice {
 public:
-	LCDDevice(I2C_HandleTypeDef &hi2c, uint16_t I2CAddress);
+	std::function<void(bool, std::string)> Log;
+	LCDDevice(I2C_HandleTypeDef &hi2c, uint16_t I2CAddress, std::function<void(bool, std::string)> Logger);
 	void send(uint8_t data, uint8_t flags);
 	inline void command(uint8_t value);
 	void write(uint8_t value);
@@ -51,7 +53,5 @@ private:
 	uint16_t I2CAddress;
 	I2C_HandleTypeDef *hi2c;
 	int8_t utf_hi_char;
-	uint8_t currentRow;
-	uint8_t currentCol;
-	uint8_t _numlines,_currline;
+	uint8_t _numlines,_currline,_currcol;
 };

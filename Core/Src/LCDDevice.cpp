@@ -8,26 +8,28 @@
 #include <LCDDevice.h>
 
 const char utf_recode[] { 0x70, 0x63, 0xbf, 0x79, 0xe4, 0x78, 0xe5, 0xc0, 0xc1,
-			0xe6, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0x41, 0xa0, 0x42, 0xa1, 0xe0,
-			0x45, 0xa3, 0xa4, 0xa5, 0xa6, 0x4b, 0xa7, 0x4d, 0x48, 0x4f, 0xa8, 0x50,
-			0x43, 0x54, 0xa9, 0xaa, 0x58, 0xe1, 0xab, 0xac, 0xe2, 0xad, 0xae, 0x62,
-			0xaf, 0xb0, 0xb1, 0x61, 0xb2, 0xb3, 0xb4, 0xe3, 0x65, 0xb6, 0xb7, 0xb8,
-			0xb9, 0xba, 0xbb, 0xbc, 0xbd, 0x6f, 0xbe };
+			  0xe6, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0x41, 0xa0, 0x42, 0xa1, 0xe0,
+			  0x45, 0xa3, 0xa4, 0xa5, 0xa6, 0x4b, 0xa7, 0x4d, 0x48, 0x4f, 0xa8, 0x50,
+			  0x43, 0x54, 0xa9, 0xaa, 0x58, 0xe1, 0xab, 0xac, 0xe2, 0xad, 0xae, 0x62,
+			  0xaf, 0xb0, 0xb1, 0x61, 0xb2, 0xb3, 0xb4, 0xe3, 0x65, 0xb6, 0xb7, 0xb8,
+			  0xb9, 0xba, 0xbb, 0xbc, 0xbd, 0x6f, 0xbe };
 
 // Now in rework
-LCDDevice::LCDDevice(I2C_HandleTypeDef &hi2c, uint16_t I2CAddress) {
+LCDDevice::LCDDevice(I2C_HandleTypeDef &hi2c, uint16_t I2CAddress, std::function<void(bool, std::string)> Logger) : Log(Logger) {
 	this->I2CAddress = (I2CAddress << 1);
 	this->hi2c = &hi2c;
-	this->currentRow = 0;
-	this->currentCol = 0;
 	this->utf_hi_char = -1;
 	_numlines = 4;
 	_currline = 0;
+	_currcol = 0;
 }
 void LCDDevice::send(uint8_t data, uint8_t flags) {
 	if (flags) {
-		if (currentCol >= ROWS_AMOUNT) nextLine();
-		else currentCol++;
+		if (_currcol != 0 || _currline != 0) _currcol++;
+		if (_currcol >= ROWS_AMOUNT) nextLine();
+		Log(false, "COL/ROW: " + std::to_string(_currcol) + " / " + std::to_string(_currline));
+		if (_currcol == 0 && _currline == 0) _currcol++;
+		HAL_Delay(100);
 	}
 	HAL_StatusTypeDef res;
 	// бесконечный цикл
@@ -84,21 +86,20 @@ void LCDDevice::write(std::string Text) {
 }
 void LCDDevice::setCursor(uint8_t col, uint8_t row)
 {
-	currentCol = col;
-	currentRow = row;
+	_currcol = col;
+	if ( row >= _numlines ) row = _numlines-1;    // we count rows starting w/0
+	_currline = row;
 	int row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
-	if ( row >= _numlines )
-		row = _numlines-1;    // we count rows starting w/0
 	command(LCD_SETDDRAMADDR | (col + row_offsets[row]));
 }
 void LCDDevice::nextLine(){
-	if (currentRow==3) setCursor(0,0);
-	else setCursor(0, currentRow+1);
+	if (_currline==3) setCursor(0,0);
+	else setCursor(0, _currline+1);
 }
 void LCDDevice::clear() {
-	currentRow = 0;
-	currentCol = 0;
-	send(0b00000001, 0);
+	_currline = 0;
+	_currcol = 0;
+	command(0x01);
 }
 void LCDDevice::init() {
 	//20x4
@@ -107,48 +108,3 @@ void LCDDevice::init() {
 	send(0x0C, 0);
 	utf_hi_char = -1;
 }
-
-/*void nextLine() {
- setLine(currentRow + 1);
- }
- void write(std::string Text) {
- for (char c : Text) {
- this->send((uint8_t) c, 1);
- }
- }
- void write(uint8_t Symbol) {
- this->send(Symbol, 1);
- }
- void write(char symbol, uint8_t flag) {
- this->send(symbol, flag);
- }
- void write(uint16_t symbol, uint8_t flag) {
- this->send(symbol, flag);
- }
- void write(uint8_t value) {
- uint8_t out_char = value;
-
- if (utf_hi_char >= 0) {
- if (value >= 0xc0 || value < 0x80) { // it was not an UTF-8 cyrillic char
- write(0xd0 + utf_hi_char, 1);
- write(out_char, 1);
- } else {
- value &= 0x3f;
- if (!utf_hi_char && (value == 1))
- this->write(0xa2, 1); // Ё
- else if ((utf_hi_char == 1) && (value == 0x11))
- this->write(0xb5, 1); // ё
- else
- write(utf_recode[value], 1);
- }
- utf_hi_char = -1;
- } else if (value >= 0xd0 && value < 0xd2 && utf_hi_char < 0) {
- utf_hi_char = value - 0xd0;
- } else
- write(out_char, 1);
- }
- void clear() {
- currentRow = 1;
- currentCol = 0;
- this->send(0b00000001, 0);
- }*/

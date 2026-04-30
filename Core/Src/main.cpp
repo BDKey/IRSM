@@ -33,7 +33,6 @@
 #include "Menu.cpp"
 
 #define LOGUART true
-#define LOGLCD false
 
 /* USER CODE END Includes */
 
@@ -66,21 +65,18 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-LCDDevice LCD{hi2c1, 0x27};
-
 // Custom function to handle logging data in order to give more info about machine's state to user
 void Log(bool IsError, std::string Text){
-	if (!(LOGUART || LOGLCD)) return; // Don't do anything if no logging required
+	if (!(LOGUART)) return; // Don't do anything if no logging required
 	Text = (IsError ? "[ERROR]: " : "[INFO]: ") + Text;
-	if (LOGLCD){ //Log data to the LCD
-		LCD.clear();
-		LCD.write((Text).c_str());
-	}
 	if (LOGUART){ // Log data to the UART interface
 		Text+="\r\n";
 		HAL_UART_Transmit(&huart1, reinterpret_cast<uint8_t*>(&Text[0]), Text.length(), 10);
 	}
 }
+
+LCDDevice LCD{hi2c1, 0x27, Log};
+
 class State1 : public State {
 public:
 	using State::State;
