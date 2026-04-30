@@ -20,15 +20,14 @@ LCDDevice::LCDDevice(I2C_HandleTypeDef &hi2c, uint16_t I2CAddress, std::function
 	this->hi2c = &hi2c;
 	this->utf_hi_char = -1;
 	_numlines = 4;
-	_currline = 0;
-	_currcol = 0;
+	_currline = 19;
+	_currcol = _numlines - 1;
 }
 void LCDDevice::send(uint8_t data, uint8_t flags) {
 	if (flags) {
-		if (_currcol != 0 || _currline != 0) _currcol++;
+		 _currcol++;
 		if (_currcol >= ROWS_AMOUNT) nextLine();
 		Log(false, "COL/ROW: " + std::to_string(_currcol) + " / " + std::to_string(_currline));
-		if (_currcol == 0 && _currline == 0) _currcol++;
 		HAL_Delay(100);
 	}
 	HAL_StatusTypeDef res;
@@ -97,8 +96,8 @@ void LCDDevice::nextLine(){
 	else setCursor(0, _currline+1);
 }
 void LCDDevice::clear() {
-	_currline = 0;
-	_currcol = 0;
+	_currline = _numlines - 1;
+	_currcol = 19;
 	command(0x01);
 }
 void LCDDevice::init() {
