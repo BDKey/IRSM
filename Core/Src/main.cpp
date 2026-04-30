@@ -75,7 +75,7 @@ void Log(bool IsError, std::string Text){
 	}
 }
 
-LCDDevice LCD{hi2c1, 0x27, Log};
+LCDDevice LCD{hi2c1, 0x27};
 
 class State1 : public State {
 public:
@@ -167,16 +167,6 @@ int main(void)
   Log(false, "Initialized Menu");
 
   //Display welcome-screen
-  LCD.clear();
-  LCD.write("01234567890123456789aaaaaaaaaabbbbbbbbbb01234567890123456789ccccccccccdddddddddd");
-  HAL_Delay(1000);
-  LCD.write("this is a test message that is supposed to show any errors that may occure there");
-  HAL_Delay(1000);
-  LCD.clear();
-  LCD.write("01234567890123456789aaaaaaaaaabbbbbbbbbb01234567890123456789ccccccccccdddddddddd");
-  HAL_Delay(1000);
-  LCD.write("this is a test message that is supposed to show any errors that may occure there");
-  HAL_Delay(1000);
   LCD.clear();
   LCD.setCursor(0,0);
   LCD.write(" Слайсер Роторный  ");

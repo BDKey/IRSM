@@ -15,7 +15,7 @@ const char utf_recode[] { 0x70, 0x63, 0xbf, 0x79, 0xe4, 0x78, 0xe5, 0xc0, 0xc1,
 			  0xb9, 0xba, 0xbb, 0xbc, 0xbd, 0x6f, 0xbe };
 
 // Now in rework
-LCDDevice::LCDDevice(I2C_HandleTypeDef &hi2c, uint16_t I2CAddress, std::function<void(bool, std::string)> Logger) : Log(Logger) {
+LCDDevice::LCDDevice(I2C_HandleTypeDef &hi2c, uint16_t I2CAddress) {
 	this->I2CAddress = (I2CAddress << 1);
 	this->hi2c = &hi2c;
 	this->utf_hi_char = -1;
@@ -24,12 +24,6 @@ LCDDevice::LCDDevice(I2C_HandleTypeDef &hi2c, uint16_t I2CAddress, std::function
 	_currcol = _numlines - 1;
 }
 void LCDDevice::send(uint8_t data, uint8_t flags) {
-	if (flags) {
-		 _currcol++;
-		if (_currcol >= ROWS_AMOUNT) nextLine();
-		Log(false, "COL/ROW: " + std::to_string(_currcol) + " / " + std::to_string(_currline));
-		HAL_Delay(100);
-	}
 	HAL_StatusTypeDef res;
 	// бесконечный цикл
 	for (;;) {
@@ -54,6 +48,10 @@ void LCDDevice::send(uint8_t data, uint8_t flags) {
 	HAL_I2C_Master_Transmit(&(*hi2c), I2CAddress, data_arr, sizeof(data_arr),
 			HAL_MAX_DELAY);
 	HAL_Delay(LCD_DELAY_MS);
+	if (flags) {
+		 _currcol++;
+		if (_currcol >= ROWS_AMOUNT) nextLine();
+	}
 }
 inline void LCDDevice::command(uint8_t value) {
   send(value, 0);
@@ -96,8 +94,8 @@ void LCDDevice::nextLine(){
 	else setCursor(0, _currline+1);
 }
 void LCDDevice::clear() {
-	_currline = _numlines - 1;
-	_currcol = 19;
+	_currline = 0;
+	_currcol = 0;
 	command(0x01);
 }
 void LCDDevice::init() {

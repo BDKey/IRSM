@@ -38,8 +38,7 @@
 
 class LCDDevice {
 public:
-	std::function<void(bool, std::string)> Log;
-	LCDDevice(I2C_HandleTypeDef &hi2c, uint16_t I2CAddress, std::function<void(bool, std::string)> Logger);
+	LCDDevice(I2C_HandleTypeDef &hi2c, uint16_t I2CAddress);
 	void send(uint8_t data, uint8_t flags);
 	inline void command(uint8_t value);
 	void write(uint8_t value);
