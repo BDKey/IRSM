@@ -15,7 +15,7 @@ const char utf_recode[] { 0x70, 0x63, 0xbf, 0x79, 0xe4, 0x78, 0xe5, 0xc0, 0xc1,
 			  0xb9, 0xba, 0xbb, 0xbc, 0xbd, 0x6f, 0xbe };
 
 // Now in rework
-LCDDevice::LCDDevice(I2C_HandleTypeDef &hi2c, uint16_t I2CAddress) {
+LCDDevice::LCDDevice(I2C_HandleTypeDef &hi2c, uint16_t I2CAddress, std::function<void(bool, std::string)> Logger) : Log(Logger) {
 	this->I2CAddress = (I2CAddress << 1);
 	this->hi2c = &hi2c;
 	this->utf_hi_char = -1;
@@ -52,6 +52,13 @@ void LCDDevice::send(uint8_t data, uint8_t flags) {
 		 _currcol++;
 		if (_currcol >= ROWS_AMOUNT) nextLine();
 	}
+}
+void LCDDevice::createChar(uint8_t location, uint8_t charmap[]) {
+  location &= 0x7; // we only have 8 locations 0-7
+  command(LCD_SETCGRAMADDR | (location << 3));
+  for (int i=0; i<8; i++) {
+    write(charmap[i]);
+  }
 }
 inline void LCDDevice::command(uint8_t value) {
   send(value, 0);

@@ -75,7 +75,7 @@ void Log(bool IsError, std::string Text){
 	}
 }
 
-LCDDevice LCD{hi2c1, 0x27};
+LCDDevice LCD{hi2c1, 0x27, Log};
 
 class State1 : public State {
 public:
