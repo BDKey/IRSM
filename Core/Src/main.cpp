@@ -30,7 +30,10 @@
 #include "IRSM.cpp"
 #include <cstring>
 #include "LCDDevice.h"
+#include "KeypadDevice.h"
 #include "Menu.cpp"
+#include <sys/_stdint.h>
+#include <inttypes.h>
 
 #define LOGUART
 
@@ -72,8 +75,6 @@ void Log(bool IsError, std::string Text){
 	HAL_UART_Transmit(&huart1, reinterpret_cast<uint8_t*>(&Text[0]), Text.length(), 10);
 #endif
 }
-
-LCDDevice LCD {hi2c1, 0x27, Log};
 
 class State1 : public State {
 public:
@@ -165,8 +166,29 @@ int main(void)
 
   Log(false, "PHASE 1/3 FINISHED");
 
+  LCDDevice LCD {hi2c1, 0x27, Log};
   LCD.init();
-  Log(false, "FINISHED: LCD [1/1]");
+  Log(false, "FINISHED: LCD [1/2]");
+
+  /*
+   * std::list<GPIO_TypeDef*> cols_GPIO, std::list<uint16_t> columns_GPIO_pins,
+			std::list<GPIO_TypeDef*> rows_GPIO, std::list<uint16_t> rows_GPIO_pins,
+			std::list<std::list<char>> symbols,
+			uint16_t hold_delay
+   */
+  std::list<GPIO_TypeDef*> cols_GPIO {GPIOB, GPIOB, GPIOB, GPIOB};
+  std::list<uint16_t> columns_GPIO_pins {Keyboard_pin6_Pin, Keyboard_pin7_Pin, Keyboard_pin8_Pin, Keyboard_pin9_Pin};
+  std::list<GPIO_TypeDef*> rows_GPIO {GPIOB, GPIOB, GPIOA, GPIOA};
+  std::list<uint16_t> rows_GPIO_pins {Keyboard_pin2_Pin, Keyboard_pin3_Pin, Keyboard_pin4_Pin, Keyboard_pin5_Pin};
+  std::list<std::list<char>> symbols {
+	  {'1', '2', '3', 'A'},
+	  {'4', '5', '6', 'B'},
+	  {'7', '8', '9', 'C'},
+	  {'*', '0', '#', 'D'}
+  };
+
+  KeypadDevice Keypad(cols_GPIO, columns_GPIO_pins, rows_GPIO, rows_GPIO_pins, symbols);
+  Log(false, "FINISHED: KEYPAD [2/2]");
 
   Log(false, "PHASE 2/3 FINISHED");
 
@@ -212,6 +234,14 @@ int main(void)
   //uint8_t cursorLine = 2;
   while (1)
   {
+	  Keypad.UpdateKeymap();
+	  if (Keypad.BufferIsNotEmpty()){
+		  for ( std::tuple<bool, char> i : Keypad.GetChars()){
+			  char character;
+			  std::tie(std::ignore, character) = i;
+			  Log(false, {character});
+		  }
+	  }
 	  /*for (int i=0;i<6;i++) {
 		  LCD.clear();
 		  LCD.setCursor(0,0);
