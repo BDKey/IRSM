@@ -7,77 +7,74 @@
 #include "KeypadDevice.h"
 
 // Columns are for writing, Rows are for reading
-class KeypadDevice{
-public:
-	std::list<std::list<char>> Symbols;
-	uint16_t HoldDelay;
-	KeypadDevice(GPIO_TypeDef& GPIOx, std::list<uint16_t> Columns_GPIO_Pins, std::list<uint16_t> Rows_GPIO_Pins, std::list<std::list<char>> Symbols, uint16_t HoldDelay){
-		this->GPIOx = &GPIOx;
-		this->Columns_GPIO_Pins = Columns_GPIO_Pins;
-		this->Rows_GPIO_Pins = Rows_GPIO_Pins;
-		this->Symbols = Symbols;
-		this->HoldDelay = HoldDelay;
-		KeyMap = std::list<std::list<uint32_t>>(Symbols.size(), std::list<uint32_t>(Symbols.begin()->size(), 0)); // Initialyzes the KeyMap
-		LastUpdate = HAL_GetTick();
+KeypadDevice::KeypadDevice(std::list<GPIO_TypeDef*> columns_GPIOx, std::list<uint16_t> columns_GPIO_pins,
+	std::list<GPIO_TypeDef*> rows_GPIOx, std::list<uint16_t> rows_GPIO_pins,
+	std::list<std::list<char>> symbols,
+	uint16_t hold_delay){
+	this->rows_GPIO_pins = rows_GPIO_pins;
+	this->rows_GPIOx = rows_GPIOx;
+	this->columns_GPIO_pins = columns_GPIO_pins;
+	this->columns_GPIOx = columns_GPIOx;
+	this->symbols = symbols;
+	this->hold_delay = hold_delay;
+	KeyMap = std::list<std::list<uint32_t>>(symbols.size(), std::list<uint32_t>(symbols.begin()->size(), 0)); // Initialyzes the KeyMap
+	LastUpdate = HAL_GetTick();
+}
+void KeypadDevice::UpdateKeymap(){
+	if ((HAL_GetTick() - LastUpdate) < TimeBetweenUpdates) {
+		return;
 	}
-	void UpdateKeymap(){
-		if ((HAL_GetTick() - LastUpdate) < TimeBetweenUpdates) {
-			return;
-		}
-		LastUpdate = HAL_GetTick();
-		// Precious pointers, point me to the bright future
-		auto rowiter = Rows_GPIO_Pins.begin();
-		auto columniter = Columns_GPIO_Pins.begin();
+	LastUpdate = HAL_GetTick();
+	// Precious pointers, point me to the bright future
+	auto rowiter = rows_GPIO_pins.begin();
+	auto rowgpioiter = rows_GPIOx.begin();
+	auto columniter = columns_GPIO_pins.begin();
+	auto columngpioiter = columns_GPIOx.begin();
 
-		auto symbolsrowiter = Symbols.begin();
-		auto symbolscolumniter = (*symbolsrowiter).begin();
-		for (std::list<char> Row : Symbols){
-			for (char Symbol : Row){
-				HAL_GPIO_WritePin(GPIOx, *rowiter, GPIO_PIN_SET);
-				if ((*symbolscolumniter)==0){
-					if (HAL_GPIO_ReadPin(GPIOx, *columniter) == GPIO_PIN_SET){
-						(*symbolscolumniter)=HAL_GetTick();
-					}
-				} else {
-					if (HAL_GPIO_ReadPin(GPIOx, *columniter) == GPIO_PIN_RESET){
-						buffer.push_front(std::tuple<bool, char> {((HAL_GetTick() - (*symbolscolumniter)) >= HoldDelay), Symbol});
-						(*symbolscolumniter)=0;
-					}
+	auto symbolsrowiter = symbols.begin();
+	auto symbolscolumniter = (*symbolsrowiter).begin();
+	for (std::list<char> Row : symbols){
+		for (char Symbol : Row){
+			auto rowgpio = *rowgpioiter;
+			auto columngpio = *columngpioiter;
+			HAL_GPIO_WritePin(rowgpio, *rowiter, GPIO_PIN_SET);
+			if ((*symbolscolumniter)==0){
+				if (HAL_GPIO_ReadPin(columngpio, *columniter) == GPIO_PIN_SET){
+					(*symbolscolumniter)=HAL_GetTick();
 				}
-				HAL_GPIO_WritePin(GPIOx, *rowiter, GPIO_PIN_RESET);
-				columniter++;
-				symbolscolumniter++;
+			} else {
+				if (HAL_GPIO_ReadPin(columngpio, *columniter) == GPIO_PIN_RESET){
+					buffer.push_back(std::tuple<bool, char> {((HAL_GetTick() - (*symbolscolumniter)) >= hold_delay), Symbol});
+					(*symbolscolumniter)=0;
+				}
 			}
-			columniter = Columns_GPIO_Pins.begin();
-			rowiter++;
-			symbolsrowiter++;
-			symbolscolumniter = (*symbolsrowiter).begin();
+			HAL_GPIO_WritePin(rowgpio, *rowiter, GPIO_PIN_RESET);
+			columniter++;
+			columngpioiter++;
+			symbolscolumniter++;
 		}
+		columniter = columns_GPIO_pins.begin();
+		columngpioiter = columns_GPIOx.begin();
+		rowiter++;
+		rowgpioiter++;
+		symbolsrowiter++;
+		symbolscolumniter = (*symbolsrowiter).begin();
 	}
-	std::tuple<bool, char> GetChar(){
-		UpdateKeymap();
-		if (buffer.empty()) return std::tuple<bool, char> {false, 0};
-		std::tuple<bool, char> Key = buffer.front();
-		buffer.pop_front();
-		return Key;
-
+}
+std::tuple<bool, char> KeypadDevice::GetChar(){
+	UpdateKeymap();
+	if (buffer.empty()) return std::tuple<bool, char> {false, 0};
+	std::tuple<bool, char> Key = buffer.front();
+	buffer.pop_front();
+	return Key;
 	}
-	std::list<std::tuple<bool, char>> GetChars(){
-		UpdateKeymap();
-		if (buffer.empty()) return std::list<std::tuple<bool, char>> {std::tuple<bool, char> {false, 0}};
-		std::list<std::tuple<bool, char>> Keys = buffer;
-		buffer.clear();
-		return Keys;
-	}
-	void ClearBuffer(){
-
-	}
-protected:
-	std::list<std::list<uint32_t>> KeyMap{};
-	std::list<std::tuple<bool, char>> buffer{};
-	std::list<uint16_t> Columns_GPIO_Pins;
-	std::list<uint16_t> Rows_GPIO_Pins;
-	GPIO_TypeDef* GPIOx;
-private:
-	uint32_t LastUpdate;
-};
+std::list<std::tuple<bool, char>> KeypadDevice::GetChars(){
+	UpdateKeymap();
+	if (buffer.empty()) return std::list<std::tuple<bool, char>> {std::tuple<bool, char> {false, 0}};
+	std::list<std::tuple<bool, char>> Keys = buffer;
+	buffer.clear();
+	return Keys;
+}
+void KeypadDevice::ClearBuffer(){
+	buffer.clear();
+}

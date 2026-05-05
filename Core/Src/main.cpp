@@ -32,7 +32,7 @@
 #include "LCDDevice.h"
 #include "Menu.cpp"
 
-#define LOGUART true
+#define LOGUART
 
 /* USER CODE END Includes */
 
@@ -67,15 +67,13 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 // Custom function to handle logging data in order to give more info about machine's state to user
 void Log(bool IsError, std::string Text){
-	if (!(LOGUART)) return; // Don't do anything if no logging required
-	Text = (IsError ? "[ERROR]: " : "[INFO]: ") + Text;
-	if (LOGUART){ // Log data to the UART interface
-		Text+="\r\n";
-		HAL_UART_Transmit(&huart1, reinterpret_cast<uint8_t*>(&Text[0]), Text.length(), 10);
-	}
+#ifdef LOGUART
+	Text = (IsError ? "[ERROR]: " : "[INFO]: ") + Text + "\r\n";
+	HAL_UART_Transmit(&huart1, reinterpret_cast<uint8_t*>(&Text[0]), Text.length(), 10);
+#endif
 }
 
-LCDDevice LCD{hi2c1, 0x27, Log};
+LCDDevice LCD {hi2c1, 0x27, Log};
 
 class State1 : public State {
 public:
@@ -140,7 +138,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  Log(false, "BOOT UP SEQUENCE INITIATED");
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -152,30 +150,37 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  Log(false, "FINISHED: GPIO [1/4]");
+
   MX_USART1_UART_Init();
+  Log(false, "FINISHED: UART [2/4]");
+
   MX_I2C1_Init();
+  Log(false, "FINISHED: I2C [3/4]");
+
   MX_TIM2_Init();
+  Log(false, "FINISHED: TIM(PWM) [4/4]");
+
   /* USER CODE BEGIN 2 */
 
-  Log(false, "Starting up");
+  Log(false, "PHASE 1/3 FINISHED");
 
   LCD.init();
-  Log(false, "Initialized LCD");
+  Log(false, "FINISHED: LCD [1/1]");
 
-  std::list<std::string> MenuItems {"Item 1", "Item 2", "Item 3", "Item 4", "Item 5", "Item 6", "Item 7"};
-  Menu TestMenu {4, 1, MenuItems};
-  Log(false, "Initialized Menu");
+  Log(false, "PHASE 2/3 FINISHED");
 
   //Display welcome-screen
+  Log(false, "DISPLAYING WELCOME-SCREEN");
   LCD.clear();
   LCD.setCursor(0,0);
-  LCD.write(" Слайсер Роторный  ");
+  LCD.write("Industrial Rotory");
   LCD.setCursor(0,1);
-  LCD.write("   Промышленный    ");
+  LCD.write("Slicer Machine by");
   LCD.setCursor(0,2);
-  LCD.write("      Изделие      ");
+  LCD.write("Tebenkov-Shamrin");
   LCD.setCursor(0,3);
-  LCD.write("Тебенькова-Шамрина ");
+  LCD.write("Production");
   HAL_Delay(1000);
   LCD.clear();
 
@@ -195,14 +200,19 @@ int main(void)
   //int32_t CH1_DC = 0;
 
   //Log(false, "Initialized L298N Driver");
+
+  Log(false,"PHASE 3/3 FINISHED");
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint8_t cursorLine = 2;
+
+  Log(false,"ENTERING MAIN LOOP");
+
+  //uint8_t cursorLine = 2;
   while (1)
   {
-	  for (int i=0;i<6;i++) {
+	  /*for (int i=0;i<6;i++) {
 		  LCD.clear();
 		  LCD.setCursor(0,0);
 		  cursorLine = 2;
@@ -230,7 +240,7 @@ int main(void)
 
 		  TestMenu.moveCursor(-1);
 		  HAL_Delay(1000);
-	  }
+	  }*/
     /* USER CODE END WHILE */
 	  /*
 	HAL_UART_Receive_IT(&huart1, rx_buff, 1);
