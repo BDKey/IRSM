@@ -7,12 +7,12 @@
 #include "KeypadDevice.h"
 
 // Columns are for writing, Rows are for reading
-KeypadDevice::KeypadDevice(const std::list<GPIO_TypeDef*>& columns_GPIOx,
-	    const std::list<uint16_t>& columns_GPIO_pins,
-	    const std::list<GPIO_TypeDef*>& rows_GPIOx,
-	    const std::list<uint16_t>& rows_GPIO_pins,
-	    const std::list<std::list<char>>& symbols,
-	    uint16_t hold_delay = 500){
+KeypadDevice::KeypadDevice(std::list<GPIO_TypeDef*>& columns_GPIOx,
+	    std::list<uint16_t>& columns_GPIO_pins,
+	    std::list<GPIO_TypeDef*>& rows_GPIOx,
+	    std::list<uint16_t>& rows_GPIO_pins,
+	    std::list<std::list<char>>& symbols,
+	    uint16_t hold_delay){
 	this->rows_GPIO_pins = rows_GPIO_pins;
 	this->rows_GPIOx = rows_GPIOx;
 	this->columns_GPIO_pins = columns_GPIO_pins;
@@ -24,6 +24,7 @@ KeypadDevice::KeypadDevice(const std::list<GPIO_TypeDef*>& columns_GPIOx,
 	KeyMap = {};
 	buffer = {};
 }
+//SOMETHING ISN'T WORKING (it can't register any key presses(maybe it's all about me being dumb asf with pointers and iterators(f*ck my stupid life :3c)))
 void KeypadDevice::UpdateKeymap(){
 	if ((HAL_GetTick() - LastUpdate) < TimeBetweenUpdates) {
 		return;
@@ -35,32 +36,42 @@ void KeypadDevice::UpdateKeymap(){
 	auto columniter = columns_GPIO_pins.begin();
 	auto columngpioiter = columns_GPIOx.begin();
 
+	auto keymaprowiter = KeyMap.begin();
+	auto keymapcolumniter = (*keymaprowiter).begin();
+
 	auto symbolsrowiter = symbols.begin();
 	auto symbolscolumniter = (*symbolsrowiter).begin();
-	for (std::list<char> Row : symbols){
-		for (char Symbol : Row){
-			auto rowgpio = *rowgpioiter;
-			auto columngpio = *columngpioiter;
-			HAL_GPIO_WritePin(rowgpio, *rowiter, GPIO_PIN_SET);
-			if ((*symbolscolumniter)==0){
+
+	auto rowgpio = *rowgpioiter;
+	auto columngpio = *columngpioiter;
+	for (auto& Row : symbols){
+		rowgpio = *rowgpioiter;
+		HAL_GPIO_WritePin(rowgpio, *rowiter, GPIO_PIN_SET);
+		HAL_Delay(5);
+		for (auto& Symbol : Row){
+			columngpio = *columngpioiter;
+			if ((*keymapcolumniter)==0){
 				if (HAL_GPIO_ReadPin(columngpio, *columniter) == GPIO_PIN_SET){
-					(*symbolscolumniter)=HAL_GetTick();
+					(*keymapcolumniter)=HAL_GetTick();
 				}
 			} else {
 				if (HAL_GPIO_ReadPin(columngpio, *columniter) == GPIO_PIN_RESET){
 					buffer.push_back(std::tuple<bool, char> {((HAL_GetTick() - (*symbolscolumniter)) >= hold_delay), Symbol});
-					(*symbolscolumniter)=0;
+					(*keymapcolumniter)=0;
 				}
 			}
-			HAL_GPIO_WritePin(rowgpio, *rowiter, GPIO_PIN_RESET);
 			columniter++;
 			columngpioiter++;
+			keymapcolumniter++;
 			symbolscolumniter++;
 		}
+		HAL_GPIO_WritePin(rowgpio, *rowiter, GPIO_PIN_RESET);
 		columniter = columns_GPIO_pins.begin();
 		columngpioiter = columns_GPIOx.begin();
 		rowiter++;
 		rowgpioiter++;
+		keymaprowiter++;
+		keymapcolumniter = (*keymaprowiter).begin();
 		symbolsrowiter++;
 		symbolscolumniter = (*symbolsrowiter).begin();
 	}

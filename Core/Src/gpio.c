@@ -83,7 +83,7 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = Keyboard_pin6_Pin|Keyboard_pin7_Pin|Keyboard_pin8_Pin|Keyboard_pin9_Pin
                           |IR_sensor_pin_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : Keyboard_pin3_Pin Keyboard_pin2_Pin Keyboard_pin1_Pin */

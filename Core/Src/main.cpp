@@ -164,7 +164,7 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
-  Log(false, "PHASE 1/3 FINISHED");
+  Log(false, "PHASE 1/4 FINISHED");
 
   LCDDevice LCD {hi2c1, 0x27, Log};
   LCD.init();
@@ -176,36 +176,36 @@ int main(void)
 			std::list<std::list<char>> symbols,
 			uint16_t hold_delay
    */
-  std::list<GPIO_TypeDef*> cols_GPIO {GPIOB, GPIOB, GPIOB, GPIOB};
-  std::list<uint16_t> columns_GPIO_pins {Keyboard_pin6_Pin, Keyboard_pin7_Pin, Keyboard_pin8_Pin, Keyboard_pin9_Pin};
-  std::list<GPIO_TypeDef*> rows_GPIO {GPIOB, GPIOB, GPIOA, GPIOA};
-  std::list<uint16_t> rows_GPIO_pins {Keyboard_pin2_Pin, Keyboard_pin3_Pin, Keyboard_pin4_Pin, Keyboard_pin5_Pin};
-  std::list<std::list<char>> symbols {
+  std::list<GPIO_TypeDef*> cols_GPIO_list {GPIOB, GPIOB, GPIOB, GPIOB};
+  std::list<uint16_t> columns_GPIO_pins_list {Keyboard_pin6_Pin, Keyboard_pin7_Pin, Keyboard_pin8_Pin, Keyboard_pin9_Pin};
+  std::list<GPIO_TypeDef*> rows_GPIO_list {GPIOB, GPIOB, GPIOA, GPIOA};
+  std::list<uint16_t> rows_GPIO_pins_list {Keyboard_pin2_Pin, Keyboard_pin3_Pin, Keyboard_pin4_Pin, Keyboard_pin5_Pin};
+  std::list<std::list<char>> symbols_list {
 	  {'1', '2', '3', 'A'},
 	  {'4', '5', '6', 'B'},
 	  {'7', '8', '9', 'C'},
 	  {'*', '0', '#', 'D'}
   };
 
-  KeypadDevice Keypad(cols_GPIO, columns_GPIO_pins, rows_GPIO, rows_GPIO_pins, symbols);
+  KeypadDevice Keypad(cols_GPIO_list, columns_GPIO_pins_list, rows_GPIO_list, rows_GPIO_pins_list, symbols_list, 500);
   Log(false, "FINISHED: KEYPAD [2/2]");
 
-  Log(false, "PHASE 2/3 FINISHED");
+  Log(false, "PHASE 2/4 FINISHED");
 
-  //Display welcome-screen
-  Log(false, "DISPLAYING WELCOME-SCREEN");
-  LCD.clear();
-  LCD.setCursor(0,0);
-  LCD.write("Industrial Rotory");
-  LCD.setCursor(0,1);
-  LCD.write("Slicer Machine by");
-  LCD.setCursor(0,2);
-  LCD.write("Tebenkov-Shamrin");
-  LCD.setCursor(0,3);
-  LCD.write("Production");
-  HAL_Delay(1000);
-  LCD.clear();
-
+  //I am stoooopid
+  bool test = true;
+  HAL_GPIO_WritePin(GPIOB, Keyboard_pin2_Pin, GPIO_PIN_SET);
+  HAL_Delay(50);
+  test = HAL_GPIO_ReadPin(GPIOB, Keyboard_pin6_Pin)==GPIO_PIN_SET;
+  HAL_Delay(50);
+  HAL_GPIO_WritePin(GPIOB, Keyboard_pin2_Pin, GPIO_PIN_RESET);
+  HAL_Delay(50);
+  if (test){
+	Log(false, "KEYPAD CHECK SECCESSFUL");
+  } else {
+	Log(true, "KEYPAD CHECK FAILED, HALTING PROGRAMM");
+	while (1);
+  }
   //uint8_t rx_buff[1]={};
 
   /*StateMachine MainStateMachine{&Log};
@@ -223,24 +223,38 @@ int main(void)
 
   //Log(false, "Initialized L298N Driver");
 
-  Log(false,"PHASE 3/3 FINISHED");
+  Log(false,"PHASE 3/4 FINISHED");
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  Log(false,"ENTERING MAIN LOOP");
 
   //uint8_t cursorLine = 2;
+
+  //Display welcome-screen
+    Log(false, "DISPLAYING WELCOME-SCREEN");
+    LCD.clear();
+    LCD.setCursor(0,0);
+    LCD.write("Industrial Rotory");
+    LCD.setCursor(0,1);
+    LCD.write("Slicer Machine by");
+    LCD.setCursor(0,2);
+    LCD.write("Tebenkov-Shamrin");
+    LCD.setCursor(0,3);
+    LCD.write("Production");
+    HAL_Delay(1000);
+    LCD.clear();
+
+  Log(false, "PHASE 4/4 FINISHED");
+  Log(false,"ENTERING MAIN LOOP");
   while (1)
   {
-	  Keypad.UpdateKeymap();
-	  if (Keypad.BufferIsNotEmpty()){
-		  for ( std::tuple<bool, char> i : Keypad.GetChars()){
-			  char character;
-			  std::tie(std::ignore, character) = i;
-			  Log(false, {character});
-		  }
+	  //Keypad.UpdateKeymap();
+	  while (Keypad.BufferIsNotEmpty()){
+		  char character;
+		  std::tie(std::ignore, character) = Keypad.GetChar();
+		  Log(false, {character});
 	  }
 	  /*for (int i=0;i<6;i++) {
 		  LCD.clear();
