@@ -69,10 +69,20 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 // Custom function to handle logging data in order to give more info about machine's state to user
-void Log(bool IsError, std::string Text){
+void Log(uint8_t type, std::string text){
 #ifdef LOGUART
-	Text = (IsError ? "[ERROR]: " : "[INFO]: ") + Text + "\r\n";
-	HAL_UART_Transmit(&huart1, reinterpret_cast<uint8_t*>(&Text[0]), Text.length(), 10);
+	std::string prefix = "";
+	if (type == 1){
+		prefix = "[INFO]: ";
+	} else if (type == 2){
+		prefix = "[WARN]: ";
+	} else if (type == 3){
+		prefix = "[ERR]: ";
+	} else if (type == 4){
+		prefix = "[CRIT]: ";
+	}
+	text = prefix + text + (type==5 ? "" : "\r\n"); //type 5 is used for special codes
+	HAL_UART_Transmit(&huart1, reinterpret_cast<uint8_t*>(&text[0]), text.length(), 10);
 #endif
 }
 
@@ -81,12 +91,12 @@ public:
 	using State::State;
 	int counter{ 0 };
 	void OnEnter() override {
-		(*ParentStateMachine).Log(false, "Entered State1");
+		(*ParentStateMachine).Log(0, "Entered State1");
 	}
 	void Tick() override {
-		(*ParentStateMachine).Log(false, "TICK1");
+		(*ParentStateMachine).Log(0, "TICK1");
 		if (counter == 3) {
-			(*ParentStateMachine).Log(false, "BEEP");
+			(*ParentStateMachine).Log(0, "BEEP");
 			(*ParentStateMachine).Emit("STATE2");
 		}
 		else {
@@ -94,7 +104,7 @@ public:
 		}
 	}
 	void OnExit() override {
-		(*ParentStateMachine).Log(false, "Exited State1");
+		(*ParentStateMachine).Log(0, "Exited State1");
 	}
 };
 bool Work{ true };
@@ -103,12 +113,12 @@ public:
 	using State::State;
 	int counter{ 0 };
 	void OnEnter() {
-		(*ParentStateMachine).Log(false, "Entered State2");
+		(*ParentStateMachine).Log(0, "Entered State2");
 	}
 	void Tick() override {
-		(*ParentStateMachine).Log(false, "TICK2");
+		(*ParentStateMachine).Log(0, "TICK2");
 		if (counter == 6) {
-			(*ParentStateMachine).Log(false, "BOOP");
+			(*ParentStateMachine).Log(0, "BOOP");
 			Work = false;
 			(*ParentStateMachine).Emit("STATE3");
 		}
@@ -117,7 +127,7 @@ public:
 		}
 	}
 	void OnExit() override {
-		(*ParentStateMachine).Log(false, "Exited State2");
+		(*ParentStateMachine).Log(0, "Exited State2");
 	}
 };*/
 /* USER CODE END 0 */
@@ -139,7 +149,8 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  Log(false, "BOOT UP SEQUENCE INITIATED");
+  HAL_Delay(1000);
+  Log(1, "BOOT UP SEQUENCE INITIATED");
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -151,24 +162,24 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  Log(false, "FINISHED: GPIO [1/4]");
+  Log(1, "FINISHED: GPIO [1/4]");
 
   MX_USART1_UART_Init();
-  Log(false, "FINISHED: UART [2/4]");
+  Log(1, "FINISHED: UART [2/4]");
 
   MX_I2C1_Init();
-  Log(false, "FINISHED: I2C [3/4]");
+  Log(1, "FINISHED: I2C [3/4]");
 
   MX_TIM2_Init();
-  Log(false, "FINISHED: TIM(PWM) [4/4]");
+  Log(1, "FINISHED: TIM(PWM) [4/4]");
 
   /* USER CODE BEGIN 2 */
 
-  Log(false, "PHASE 1/4 FINISHED");
+  Log(1, "PHASE 1/4 FINISHED");
 
   LCDDevice LCD {hi2c1, 0x27, Log};
   LCD.init();
-  Log(false, "FINISHED: LCD [1/2]");
+  Log(1, "FINISHED: LCD [1/2]");
 
   /*
    * std::list<GPIO_TypeDef*> cols_GPIO, std::list<uint16_t> columns_GPIO_pins,
@@ -188,24 +199,22 @@ int main(void)
   };
 
   KeypadDevice Keypad(cols_GPIO_list, columns_GPIO_pins_list, rows_GPIO_list, rows_GPIO_pins_list, symbols_list, 500);
-  Log(false, "FINISHED: KEYPAD [2/2]");
+  Log(1, "FINISHED: KEYPAD [2/2]");
 
-  Log(false, "PHASE 2/4 FINISHED");
+  Log(1, "PHASE 2/4 FINISHED");
 
   //I am stoooopid
-  bool test = true;
-  HAL_GPIO_WritePin(GPIOB, Keyboard_pin2_Pin, GPIO_PIN_SET);
+  Log(1, "TESTING KEYPAD");
+  LCD.clear();
+  LCD.setCursor(0,0);
+  LCD.write("PRESS \"*\" TO BOOT");
+  HAL_GPIO_WritePin(GPIOA, Keyboard_pin5_Pin, GPIO_PIN_SET);
   HAL_Delay(50);
-  test = HAL_GPIO_ReadPin(GPIOB, Keyboard_pin6_Pin)==GPIO_PIN_SET;
+  while(HAL_GPIO_ReadPin(GPIOB, Keyboard_pin6_Pin)==GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, Keyboard_pin5_Pin, GPIO_PIN_RESET);
   HAL_Delay(50);
-  HAL_GPIO_WritePin(GPIOB, Keyboard_pin2_Pin, GPIO_PIN_RESET);
-  HAL_Delay(50);
-  if (test){
-	Log(false, "KEYPAD CHECK SECCESSFUL");
-  } else {
-	Log(true, "KEYPAD CHECK FAILED, HALTING PROGRAMM");
-	while (1);
-  }
+  Log(1, "KEYPAD CHECK SECCESSFUL");
+  LCD.clear();
   //uint8_t rx_buff[1]={};
 
   /*StateMachine MainStateMachine{&Log};
@@ -221,9 +230,9 @@ int main(void)
   //HAL_GPIO_WritePin(GPIOA, IN2_Pin, GPIO_PIN_RESET);
   //int32_t CH1_DC = 0;
 
-  //Log(false, "Initialized L298N Driver");
+  //Log(0, "Initialized L298N Driver");
 
-  Log(false,"PHASE 3/4 FINISHED");
+  Log(1,"PHASE 3/4 FINISHED");
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -233,29 +242,60 @@ int main(void)
   //uint8_t cursorLine = 2;
 
   //Display welcome-screen
-    Log(false, "DISPLAYING WELCOME-SCREEN");
+    Log(1, "DISPLAYING WELCOME-SCREEN");
     LCD.clear();
     LCD.setCursor(0,0);
     LCD.write("Industrial Rotory");
     LCD.setCursor(0,1);
     LCD.write("Slicer Machine by");
     LCD.setCursor(0,2);
-    LCD.write("Tebenkov-Shamrin");
+    LCD.write("Shamrin-Tebenkov");
     LCD.setCursor(0,3);
     LCD.write("Production");
     HAL_Delay(1000);
     LCD.clear();
 
-  Log(false, "PHASE 4/4 FINISHED");
-  Log(false,"ENTERING MAIN LOOP");
+  Log(1, "PHASE 4/4 FINISHED");
+  Log(1,"ENTERING MAIN LOOP");
+  HAL_Delay(1000);
+  Log(5, "\x1B[2J\x1B[H");
+  Log(0, R"(    /\_/\           ___)");
+  Log(0, R"(   = o_o =_______    \ \  )");
+  Log(0, R"(    __^      __(  \.__) ))");
+  Log(0, R"((@)<_____>__(_____)____/)");
+  Log(0, "Hewwo! :3c");
   while (1)
   {
 	  Keypad.UpdateKeymap();
 	  while (Keypad.BufferIsNotEmpty()){
 		  char character;
-		  std::tie(std::ignore, character) = Keypad.GetChar();
-		  Log(false, {character});
+		  bool hold;
+		  std::tie(hold, character) = Keypad.GetChar();
+		  if (character == 'A'){
+			  Log(1, "PWM SET");
+			  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+			  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
+
+			  HAL_GPIO_WritePin(GPIOA, IN1_Pin, GPIO_PIN_SET);
+			  HAL_GPIO_WritePin(GPIOA, IN2_Pin, GPIO_PIN_RESET);
+		  } else if (character == 'B') {
+			  Log(1, "PWM RESET");
+			  HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1);
+			  HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_2);
+
+			  HAL_GPIO_WritePin(GPIOA, IN1_Pin, GPIO_PIN_RESET);
+			  HAL_GPIO_WritePin(GPIOA, IN2_Pin, GPIO_PIN_SET);
+		  }
 	  }
+	  /*for (auto& i : Keypad.KeyMap){
+		  std::string ret = "";
+		  for (auto& j : i){
+			  ret += std::to_string(j) + " ";
+		  }
+		  Log(0, ret);
+	  }
+	  Log(0,"@@@");
+	  HAL_Delay(10);*/
 	  /*for (int i=0;i<6;i++) {
 		  LCD.clear();
 		  LCD.setCursor(0,0);

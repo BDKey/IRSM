@@ -21,6 +21,7 @@ const int TimeBetweenUpdates {10}; // Для того, чтобы не так ч
 #include <tuple>
 #include <inttypes.h>
 #include <functional>
+#include <string>
 
 class KeypadDevice;
 
@@ -37,8 +38,8 @@ public:
 	std::tuple<bool, char> GetChar();
 	std::list<std::tuple<bool, char>> GetChars();
 	void ClearBuffer();
-private:
 	std::list<std::list<uint32_t>> KeyMap;
+private:
 	std::list<std::tuple<bool, char>> buffer;
 	std::list<std::list<char>> symbols;
 	std::list<uint16_t> rows_GPIO_pins;

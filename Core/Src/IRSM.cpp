@@ -42,16 +42,16 @@ public:
 	 */
 	void CalculateRotorSpeed() {
 		if (ConveyorSpeed <= 0 || SliceLength <= 0) {
-			Log(true, "Wrong values");
+			Log(1, "Wrong values");
 			return;
 		};
 		float periodicity = (float)ConveyorSpeed / (float)SliceLength;
 		if (periodicity <= RotorMinPeriodicity || periodicity > RotorMaxPeriodicity) {
-			Log(true, "RPM out of range");
+			Log(3, "RPM out of range");
 			return;
 		};
 		RotorSpeed = static_cast<uint8_t>(std::lround(mapf(periodicity, RotorMinPeriodicity, RotorMaxPeriodicity, RotorMinSpeed, 255)));
-		Log(false, "RPM is set to: " + RotorSpeed);
+		Log(3, "RPM is set to: " + RotorSpeed);
 	}
 };
 
@@ -92,15 +92,15 @@ class StateMachine {
 public:
 	std::list<State*> States{};
 	std::string CurrentState{};
-	std::function<void(bool, std::string)> Log;
-	StateMachine(std::function<void(bool, std::string)> Logger) : Log(Logger) {
+	std::function<void(uint8_t, std::string)> Log;
+	StateMachine(std::function<void(uint8_t, std::string)> Logger) : Log(Logger) {
 		States = {};
 		CurrentState = {};
 		ToEmit = { false };
 	}
 	void AddState(State* State) {
 		States.push_front(State);
-		Log(false, "Added new state: " + State->Name);
+		Log(1, "Added new state: " + State->Name);
 		if (CurrentState.empty()) {
 			CurrentState = State->Name;
 			State->OnEnter();
@@ -108,25 +108,25 @@ public:
 	}
 	void Tick() {
 		if (CurrentState.c_str() == NULL) {
-			this->Log(true, "NULL state");
+			this->Log(3, "NULL state");
 			return;
 		};
 		if (!(CheckState(States, CurrentState))) {
-			this->Log(true, "Unknown state: " + CurrentState);
+			this->Log(3, "Unknown state: " + CurrentState);
 			return;
 		}
 		FindState(States, CurrentState)->Tick();
 		if (ToEmit) {
 			if (!(CheckState(States, NewState))) {
-				this->Log(true, "Unknown emitted state");
+				this->Log(3, "Unknown emitted state");
 				return;
 			};
 			FindState(States, CurrentState)->OnExit();
-			this->Log(false, "Exited state: " + (std::string)CurrentState);
+			this->Log(1, "Exited state: " + (std::string)CurrentState);
 			CurrentState = NewState;
 			FindState(States, CurrentState)->OnEnter();
-			this->Log(false, "Entered state: " + (std::string)CurrentState);
-			this->Log(false, "New state: " + (std::string)NewState);
+			this->Log(1, "Entered state: " + (std::string)CurrentState);
+			this->Log(1, "New state: " + (std::string)NewState);
 			ToEmit = false;
 		}
 	}
