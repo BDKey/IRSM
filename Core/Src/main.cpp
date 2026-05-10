@@ -76,7 +76,7 @@ void Log(bool IsError, std::string Text){
 #endif
 }
 
-class State1 : public State {
+/*class State1 : public State {
 public:
 	using State::State;
 	int counter{ 0 };
@@ -119,7 +119,7 @@ public:
 	void OnExit() override {
 		(*ParentStateMachine).Log(false, "Exited State2");
 	}
-};
+};*/
 /* USER CODE END 0 */
 
 /**
@@ -250,7 +250,7 @@ int main(void)
   Log(false,"ENTERING MAIN LOOP");
   while (1)
   {
-	  //Keypad.UpdateKeymap();
+	  Keypad.UpdateKeymap();
 	  while (Keypad.BufferIsNotEmpty()){
 		  char character;
 		  std::tie(std::ignore, character) = Keypad.GetChar();
