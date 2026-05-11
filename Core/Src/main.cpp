@@ -179,7 +179,7 @@ int main(void)
 
   LCDDevice LCD {hi2c1, 0x27, Log};
   LCD.init();
-  Log(1, "FINISHED: LCD [1/2]");
+  Log(1, "FINISHED: LCD [1/3]");
 
   /*
    * std::list<GPIO_TypeDef*> cols_GPIO, std::list<uint16_t> columns_GPIO_pins,
@@ -199,12 +199,19 @@ int main(void)
   };
 
   KeypadDevice Keypad(cols_GPIO_list, columns_GPIO_pins_list, rows_GPIO_list, rows_GPIO_pins_list, symbols_list, 500);
-  Log(1, "FINISHED: KEYPAD [2/2]");
+  Log(1, "FINISHED: KEYPAD [2/3]");
+
+  HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_2);
+  HAL_GPIO_WritePin(GPIOA, IN1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, IN2_Pin, GPIO_PIN_SET);
+  int32_t CH1_DC = 0;
+  Log(1, "FINISHED: L298N [3/3]");
 
   Log(1, "PHASE 2/4 FINISHED");
 
   //I am stoooopid
-  Log(1, "TESTING KEYPAD");
+  Log(1, "AWAITING KEYPAD INPUT");
   LCD.clear();
   LCD.setCursor(0,0);
   LCD.write("PRESS \"*\" TO BOOT");
@@ -213,7 +220,7 @@ int main(void)
   while(HAL_GPIO_ReadPin(GPIOB, Keyboard_pin6_Pin)==GPIO_PIN_RESET);
   HAL_GPIO_WritePin(GPIOA, Keyboard_pin5_Pin, GPIO_PIN_RESET);
   HAL_Delay(50);
-  Log(1, "KEYPAD CHECK SECCESSFUL");
+  Log(1, "KEYPAD INPUT SECCESSFUL");
   LCD.clear();
   //uint8_t rx_buff[1]={};
 
@@ -264,6 +271,8 @@ int main(void)
   Log(0, R"(    __^      __(  \.__) ))");
   Log(0, R"((@)<_____>__(_____)____/)");
   Log(0, "Hewwo! :3c");
+
+  bool dir = false;
   while (1)
   {
 	  Keypad.UpdateKeymap();
@@ -286,6 +295,10 @@ int main(void)
 			  HAL_GPIO_WritePin(GPIOA, IN1_Pin, GPIO_PIN_RESET);
 			  HAL_GPIO_WritePin(GPIOA, IN2_Pin, GPIO_PIN_SET);
 		  }
+		  TIM2->CCR1 = CH1_DC;
+		  TIM2->CCR2 = 65535 - CH1_DC;
+		  CH1_DC += (dir ? 1 : -1);
+		  if (CH1_DC==0 || CH1_DC==65535) dir^=true;
 	  }
 	  /*for (auto& i : Keypad.KeyMap){
 		  std::string ret = "";
